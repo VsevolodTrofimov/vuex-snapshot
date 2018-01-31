@@ -1,0 +1,31 @@
+{
+  "name": "vuex-snapshot",
+  "version": "0.0.1",
+  "description": "Take snapshots of your store and actions for Jest snapshot testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VsevolodTrofimov/vuex-snapshot.git"
+  },
+  "keywords": [
+    "Vuex",
+    "Vue",
+    "Jest",
+    "snapshot",
+    "testing"
+  ],
+  "author": "Vsevolod Trofimov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/VsevolodTrofimov/vuex-snapshot/issues"
+  },
+  "homepage": "https://github.com/VsevolodTrofimov/vuex-snapshot#readme",
+  "devDependencies": {
+    "jest": "^22.1.4",
+    "rollup": "^0.55.1",
+    "rollup-plugin-commonjs": "^8.3.0"
+  }
+}
