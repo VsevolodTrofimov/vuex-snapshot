@@ -6,7 +6,13 @@ const RealPromise = Promise
 const realFetch = fetch
 
 
-// So we can resolve them manually and serialize them
+/**
+ * Creates mock fetch that can be resolved manually and properly serialized 
+ * and registers it in timetable
+ * @param {string} url 
+ * @param {any} init 
+ * @returns {Promise}
+ */
 export const mockFetch = (url, init) => {
   let resovleTrigger
   let rejectTrigger

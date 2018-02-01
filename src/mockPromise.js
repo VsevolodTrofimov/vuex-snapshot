@@ -5,8 +5,14 @@ import useGlobally from './useGlobally'
 const RealPromise = Promise
 
 
-// So we can resolve them manually and serialize them
+
 export class MockPromise extends RealPromise {
+  /**
+   * Creates a named promise that can be resolved manually and properly serialized 
+   * and registers it in timetable
+   * @param {Function} cb 
+   * @param {string} name
+   */
   constructor(cb, name='Promise') {
     let resovleTrigger
     let rejectTrigger
