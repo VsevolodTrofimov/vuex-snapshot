@@ -33,6 +33,7 @@ export class MockPromise extends RealPromise {
 
     timetable.register({
       name,
+      promise: this,
       payload: cb,
       resolve: resovleTrigger,
       reject: rejectTrigger

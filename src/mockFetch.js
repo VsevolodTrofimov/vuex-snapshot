@@ -3,8 +3,7 @@ import useGlobally from './useGlobally'
 
 
 const RealPromise = Promise
-const realFetch = fetch
-
+const realFetch = typeof fetch === 'undefined' ? () => {} : fetch
 
 /**
  * Creates mock fetch that can be resolved manually and properly serialized 
@@ -26,6 +25,7 @@ export const mockFetch = (url, init) => {
 
   timetable.register({
     name: url,
+    promise: simulation,
     payload: init,
     resolve: resovleTrigger,
     reject: rejectTrigger
