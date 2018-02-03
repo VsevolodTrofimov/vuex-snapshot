@@ -1,5 +1,8 @@
 'use strict';
 
+const RealPromise = Promise;
+
+
 const entries = [];
 
 
@@ -36,7 +39,7 @@ const trigger = ({name, type, payload}) => {
   
   const entry = entries.filter(e => e.name === name + suffix())[0];
   
-  return new Promise((resolve, reject) => {
+  return new RealPromise((resolve, reject) => {
     if(typeof entry === 'undefined') {
       reject(new Error(`vuex-snapshot: did not found promise ${name + suffix()}`));
     }
@@ -72,11 +75,11 @@ const useGlobally = (name, value) => {
   else window[name] = value; // browser
 };
 
-const RealPromise = Promise;
+const RealPromise$1 = Promise;
 
 
 
-class MockPromise extends RealPromise {
+class MockPromise extends RealPromise$1 {
   /**
    * Creates a named promise that can be resolved manually and properly serialized 
    * and registers it in timetable
@@ -113,9 +116,9 @@ class MockPromise extends RealPromise {
 
 
 const useMock = () => useGlobally('Promise', MockPromise);
-const useReal = () => useGlobally('Promise', RealPromise);
+const useReal = () => useGlobally('Promise', RealPromise$1);
 
-const RealPromise$1 = Promise;
+const RealPromise$2 = Promise;
 const realFetch = typeof fetch === 'undefined' ? () => {} : fetch;
 
 /**
@@ -134,7 +137,7 @@ const mockFetch = (url, init) => {
     rejectTrigger = reject;
   };
 
-  const simulation = new RealPromise$1(cbProxy);
+  const simulation = new RealPromise$2(cbProxy);
 
   timetable.register({
     name: url,
@@ -152,6 +155,9 @@ const useMock$1 = () => useGlobally('fetch', mockFetch);
 const useReal$1 = () => useGlobally('fetch', realFetch);
 
 const serialize = JSON.stringify;
+
+const RealPromise$3 = Promise;
+
 
 const normalizeResolution = resolution => {
   const normalResolution = {
@@ -193,7 +199,7 @@ const simualteResolution = (resolution, snapCb, timetable) => {
 
 
 const simualteResolutions = (resolutions, snapCb, timetable) => {
-  return new Promise((resolveSimulation, rejectSimulation) => {
+  return new RealPromise$3((resolveSimulation, rejectSimulation) => {
     const normalResolutions = resolutions.map(normalizeResolution);
     
     // simulates given resolution and queues the next until all are simulated
@@ -212,7 +218,7 @@ const simualteResolutions = (resolutions, snapCb, timetable) => {
   })
 };
 
-const RealPromise$2 = Promise;
+const RealPromise$4 = Promise;
 
 
 class Snapshot {
@@ -264,7 +270,7 @@ const snapAction = (action, mocks={}, resolutions=[]) => {
 
   if(typeof actionReturn !== 'undefined' && actionReturn instanceof Promise) {
     // action is async
-    return new RealPromise$2((resolve, reject) => {
+    return new RealPromise$4((resolve, reject) => {
       actionReturn
         .then(payload => {
           snapshot.add('ACTION RESOLVED', payload);
@@ -297,6 +303,11 @@ const snapAction = (action, mocks={}, resolutions=[]) => {
   }
 };
 
+/**
+ * Serializes your state the fancy way 
+ * (including functions and mock promises)
+ * @param {*} state 
+ */
 const snapState = state => serialize(state);
 
 var index = {

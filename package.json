@@ -1,6 +1,6 @@
 {
   "name": "vuex-snapshot",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Take snapshots of your store and actions for Jest snapshot testing",
   "main": "vuex-snapshot.js",
   "module": "vuex-snapshot-es6.js",
@@ -18,8 +18,8 @@
     "Vuex",
     "Vue",
     "Jest",
-    "snapshot",
-    "testing"
+    "testing",
+    "snapshot testing"
   ],
   "author": "Vsevolod Trofimov",
   "license": "MIT",
