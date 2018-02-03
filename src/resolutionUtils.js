@@ -12,7 +12,7 @@ export const normalizeResolution = resolution => {
   }
   
   // string constructor
-  if(typeof resolution === 'string' || resolution.indexOf('string')) {
+  if(typeof resolution === 'string' || resolution instanceof String) {
     normalResolution.name = resolution
     return normalResolution
   } 
@@ -34,6 +34,8 @@ export const normalizeResolution = resolution => {
   if(resolution.payload) {
     normalResolution.payload = resolution.payload
   }
+
+  return normalResolution
 }
 
 
