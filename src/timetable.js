@@ -1,3 +1,6 @@
+const RealPromise = Promise
+
+
 export const entries = []
 
 
@@ -34,7 +37,7 @@ const trigger = ({name, type, payload}) => {
   
   const entry = entries.filter(e => e.name === name + suffix())[0]
   
-  return new Promise((resolve, reject) => {
+  return new RealPromise((resolve, reject) => {
     if(typeof entry === 'undefined') {
       reject(new Error(`vuex-snapshot: did not found promise ${name + suffix()}`))
     }

@@ -1,6 +1,9 @@
 import serialize from './serialize'
 
 
+const RealPromise = Promise
+
+
 export const normalizeResolution = resolution => {
   const normalResolution = {
     name: '',
@@ -41,7 +44,7 @@ export const simualteResolution = (resolution, snapCb, timetable) => {
 
 
 export const simualteResolutions = (resolutions, snapCb, timetable) => {
-  return new Promise((resolveSimulation, rejectSimulation) => {
+  return new RealPromise((resolveSimulation, rejectSimulation) => {
     const normalResolutions = resolutions.map(normalizeResolution)
     
     // simulates given resolution and queues the next until all are simulated
