@@ -236,9 +236,11 @@ class Snapshot {
 }
 
 
-const makeCallSnapper = (snapshot, type) => (name, payload) => {
+const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
   snapshot.add(`${type}: ${name}`, payload);
+  cb(name, payload);
 };
+
 
 /**
  * @typedef {{name:string, type: ("resolve" | "reject"), payload}} Resolution
@@ -246,7 +248,7 @@ const makeCallSnapper = (snapshot, type) => (name, payload) => {
 /**
  * Takes snapshot of action's evaluation
  * @param {Function} action action to test
- * @param {{state, getters, payload}} mocks what should be in the store when action runs & action argument
+ * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
  * @param {[(string | Resolution)]} resolutions
  * @returns  {(string | Promise<string>)}
  */
@@ -257,9 +259,12 @@ const snapAction = (action, mocks={}, resolutions=[]) => {
     mocks = {};
   }
 
+  const commit = mocks.commit || (() => {});
+  const dispatch = mocks.dispatch || (() => {});
+
   const snapshot = new Snapshot();
-  const mockCommit = makeCallSnapper(snapshot, 'COMMIT');
-  const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH');
+  const mockCommit = makeCallSnapper(snapshot, 'COMMIT', commit);
+  const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH', dispatch);
 
 
   const actionReturn = action({
