@@ -28,7 +28,12 @@
   },
   "homepage": "https://github.com/VsevolodTrofimov/vuex-snapshot#readme",
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "jest": "^22.1.4",
     "rollup": "^0.55.1"
+  },
+  "dependencies": {
+    "babel-jest": "^22.1.0"
   }
 }

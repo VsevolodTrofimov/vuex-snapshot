@@ -71,8 +71,7 @@ var timetable$1 = Object.freeze({
 });
 
 const useGlobally = (name, value) => {
-  if(typeof window === 'undefined') global[name] = value; // node
-  else window[name] = value; // browser
+  window[name] = value;
 };
 
 const RealPromise$1 = Promise;
@@ -104,6 +103,7 @@ class MockPromise extends RealPromise$1 {
 
     super(cbProxy);
 
+    this.name = name;
     timetable.register({
       name,
       promise: this,
@@ -173,20 +173,22 @@ const normalizeResolution = resolution => {
   } 
   
   // object constructor, errors are duplicated because they are likely to occur in promises
-  if(resolution.name) {
+  if(typeof resolution.name !== 'undefined') {
     normalResolution.name = resolution.name;
   } else {
     throw new Error('vuex-snapshot: INPUT ERROR resolution must have a name')
   }
 
-  if(resolution.type && ['resolve', 'reject'].indexOf(resolution.type) !== -1) {
-    normalResolution.type = resolution.type;
-  } else {
-    throw new Error('vuex-snapshot: INPUT ERROR resolution type must be' 
-                    + 'either "resovle" or "reject"')
+  if(resolution.type) {
+    if(['resolve', 'reject'].indexOf(resolution.type) !== -1) {
+      normalResolution.type = resolution.type;
+    } else {
+      throw new Error('vuex-snapshot: INPUT ERROR resolution type must be' 
+                      + 'either "resovle" or "reject"')
+    }
   }
 
-  if(resolution.payload) {
+  if(typeof resolution.payload !== 'undefined') {
     normalResolution.payload = resolution.payload;
   }
 
