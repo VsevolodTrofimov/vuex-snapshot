@@ -31,6 +31,7 @@ export class MockPromise extends RealPromise {
 
     super(cbProxy)
 
+    this.name = name
     timetable.register({
       name,
       promise: this,
