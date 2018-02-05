@@ -2,6 +2,7 @@ import Snapshot from './snapshot'
 import {simualteResolutions} from './resolutionUtils'
 import timetable from '../src/timetable'
 
+
 const RealPromise = Promise
 
 

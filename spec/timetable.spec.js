@@ -1,5 +1,6 @@
 import timetable from '../src/timetable'
 
+
 describe('timetable', () => {
   let testEntry
   let testResolution
@@ -109,6 +110,7 @@ describe('timetable', () => {
     })
   })
 
+  
   describe('ensureAbsence', () => {
     beforeEach(() => {
       timetable.reset()
@@ -148,6 +150,7 @@ describe('timetable', () => {
       expect(timetable.entries.length).toBe(1)
     })
   })
+
 
   describe('reset', () => {
     it('Empties entries array', () => {
