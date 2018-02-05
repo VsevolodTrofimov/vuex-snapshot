@@ -44,9 +44,16 @@ export const simualteResolution = (resolution, snapshot, timetable) => {
 }
 
 
+// for testablility
+export const lib = {
+  simualteResolution,
+  normalizeResolution,
+}
+
+
 export const simualteResolutions = (resolutions, snapshot, timetable, options) => {
   return new RealPromise((resolveSimulation, rejectSimulation) => {
-    const normalResolutions = resolutions.map(normalizeResolution)
+    const normalResolutions = resolutions.map(lib.normalizeResolution)
     
     // simulates given resolution and queues the next until all are simulated
     const simulationLoop = idx => {
@@ -54,7 +61,7 @@ export const simualteResolutions = (resolutions, snapshot, timetable, options) =
         resolveSimulation()
       }
       else {
-        simualteResolution(normalResolutions[idx], snapshot, timetable)
+        lib.simualteResolution(normalResolutions[idx], snapshot, timetable)
           .then(() => simulationLoop(idx + 1))
           .catch(rejectSimulation)
       }

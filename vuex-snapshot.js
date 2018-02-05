@@ -101,6 +101,9 @@ class MockPromise extends RealPromise$1 {
     super(cbProxy);
 
     this.name = name;
+    this.resolve = resovleTrigger;
+    this.reject = rejectTrigger;
+
     timetable$1.register({
       name,
       promise: this,
@@ -136,6 +139,9 @@ const mockFetch = (url, init) => {
   };
 
   const simulation = new RealPromise$2(cbProxy);
+  simulation.name = url;
+  simulation.resolve = resovleTrigger;
+  simulation.reject = rejectTrigger;
 
   timetable$1.register({
     name: url,
@@ -211,9 +217,16 @@ const simualteResolution = (resolution, snapshot, timetable) => {
 };
 
 
+// for testablility
+const lib = {
+  simualteResolution,
+  normalizeResolution,
+};
+
+
 const simualteResolutions = (resolutions, snapshot, timetable, options) => {
   return new RealPromise$3((resolveSimulation, rejectSimulation) => {
-    const normalResolutions = resolutions.map(normalizeResolution);
+    const normalResolutions = resolutions.map(lib.normalizeResolution);
     
     // simulates given resolution and queues the next until all are simulated
     const simulationLoop = idx => {
@@ -221,7 +234,7 @@ const simualteResolutions = (resolutions, snapshot, timetable, options) => {
         resolveSimulation();
       }
       else {
-        simualteResolution(normalResolutions[idx], snapshot, timetable)
+        lib.simualteResolution(normalResolutions[idx], snapshot, timetable)
           .then(() => simulationLoop(idx + 1))
           .catch(rejectSimulation);
       }

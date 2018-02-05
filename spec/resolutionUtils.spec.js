@@ -1,5 +1,6 @@
-import {normalizeResolution, simualteResolution, simualteResolutions} from '../src/resolutionUtils'
-import timetable from '../src/timetable'
+import {normalizeResolution, simualteResolution, simualteResolutions, lib} from '../src/resolutionUtils' 
+import { MockPromise } from '../src/mockPromise'
+
 
 describe('resolutionUtils', () => {
   describe('normalizeResolution', () => {
@@ -45,6 +46,139 @@ describe('resolutionUtils', () => {
     it('Uses resolve as a default type', () => {
       const resolution = normalizeResolution({name: '1', payload: 0})
       expect(resolution.type).toBe('resolve')
+    })
+  })
+
+  
+  describe('Simualte resolution', () => {
+    let testResolution
+    const snapshot = {}
+    const timetable = {}
+
+    beforeEach(() => {
+      testResolution = {
+        name: 'someName',
+        type: 'resolve',
+        payload: {a: 'b'}
+      }
+
+      snapshot.add = jest.fn()
+      timetable.trigger = jest.fn(() => Promise.resolve())
+    })
+
+    it('Adds resolution to snapshot', () => {
+      simualteResolution(testResolution, snapshot, timetable)
+      expect(snapshot.add).lastCalledWith(expect.any(String), testResolution.payload)
+    })
+
+    it('Triggers resolution in timetable', () => {
+      simualteResolution(testResolution, snapshot, timetable)
+      expect(timetable.trigger).lastCalledWith(testResolution)
+    })
+
+    it('Returns timetable trigger result', () => {
+      const timetableReturn = Promise.resolve()
+      timetable.trigger.mockReturnValue(timetableReturn)
+
+      const simutationReturn = simualteResolution(testResolution, snapshot, timetable)
+      expect(simutationReturn).toBe(timetableReturn)
+    })
+  })
+
+  describe('Simualte resolutions', () => {
+    let testResolution
+    let resolutions
+    let normalizeResolutionSpy, simualteResolutionSpy
+    const snapshot = {}, timetable = {}, options = {}
+
+    beforeEach(() => {
+      testResolution = {
+        name: 'someName',
+        type: 'reject',
+        payload: {a: 'b'}
+      }
+
+      resolutions = [testResolution, 'a', 'b']
+
+      snapshot.add = jest.fn()
+      timetable.trigger = jest.fn().mockReturnValue(Promise.resolve())
+
+      lib.normalizeResolution = jest.fn(normalizeResolution)
+      lib.simualteResolution = jest.fn().mockReturnValue(Promise.resolve())
+    })
+  
+    it('Returns a promise', () => {
+      const returned = simualteResolutions(resolutions, snapshot, timetable, options)
+      expect(returned instanceof Promise).toBe(true)
+    })
+
+    it('Normalizes all resolution', done => {
+      simualteResolutions(resolutions, snapshot, timetable, options)
+        .then(() => {
+          expect(
+            lib.normalizeResolution.mock.calls.length
+          ).toBe(resolutions.length)
+          
+          done()
+        })
+        .catch(done)
+    })
+
+    it('Simulates all resolutions', done => {
+      simualteResolutions(resolutions, snapshot, timetable, options)
+        .then(() => {
+          expect(
+            lib.simualteResolution.mock.calls.length
+          ).toBe(resolutions.length)
+          
+          done()
+        })
+        .catch(done)
+    })
+
+
+    it('Simulates resolutions one by one', done => {
+      done()
+    })
+    
+    it('Pipes errors up', done => {
+      lib.normalizeResolution = normalizeResolution
+      lib.simualteResolution = simualteResolution
+
+      const normalizeErrorPromise = new MockPromise(() => {})
+      const snapshotErrorPromise = new MockPromise(() => {})
+      const timetableErrorPromise = new MockPromise(() => {})
+
+      simualteResolutions([{type: 'strange thing'}], snapshot, timetable, options)
+        .then(normalizeErrorPromise.reject)
+        .catch(err => {
+          expect(err instanceof Error).toBe(true)
+          normalizeErrorPromise.resolve()
+        })
+
+      simualteResolutions(resolutions, {}, timetable, options)
+      .then(snapshotErrorPromise.reject)
+        .catch(err => {
+          expect(err instanceof Error).toBe(true)
+          snapshotErrorPromise.resolve()
+        })
+
+      simualteResolutions(resolutions, {}, timetable, options)
+        .then(timetableErrorPromise.reject)
+        .catch(err => {
+          expect(err instanceof Error).toBe(true)
+          timetableErrorPromise.resolve()
+        })
+        
+      Promise.all([
+        normalizeErrorPromise, 
+        snapshotErrorPromise,
+        timetableErrorPromise
+      ])
+        .then(() => {
+          done()
+        })
+        .catch(err => console.error(err))
     })
   })
 })
