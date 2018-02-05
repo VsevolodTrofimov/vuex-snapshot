@@ -23,6 +23,9 @@ export const mockFetch = (url, init) => {
   }
 
   const simulation = new RealPromise(cbProxy)
+  simulation.name = url
+  simulation.resolve = resovleTrigger
+  simulation.reject = rejectTrigger
 
   timetable.register({
     name: url,

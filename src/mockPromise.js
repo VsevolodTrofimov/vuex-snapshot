@@ -31,6 +31,9 @@ export class MockPromise extends RealPromise {
     super(cbProxy)
 
     this.name = name
+    this.resolve = resovleTrigger
+    this.reject = rejectTrigger
+
     timetable.register({
       name,
       promise: this,
