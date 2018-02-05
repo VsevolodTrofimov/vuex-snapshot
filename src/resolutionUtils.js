@@ -63,3 +63,10 @@ export const simualteResolutions = (resolutions, snapshot, timetable, options) =
     simulationLoop(0)
   })
 }
+
+
+export default {
+  normalizeResolution,
+  simualteResolution,
+  simualteResolutions,
+}
