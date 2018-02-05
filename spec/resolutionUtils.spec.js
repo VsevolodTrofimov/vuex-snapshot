@@ -66,22 +66,17 @@ describe('resolutionUtils', () => {
       timetable.trigger = jest.fn(() => Promise.resolve())
     })
 
-    it('Adds resolution to snapshot', () => {
-      simualteResolution(testResolution, snapshot, timetable)
-      expect(snapshot.add).lastCalledWith(expect.any(String), testResolution.payload)
-    })
-
-    it('Triggers resolution in timetable', () => {
-      simualteResolution(testResolution, snapshot, timetable)
-      expect(timetable.trigger).lastCalledWith(testResolution)
-    })
-
     it('Returns timetable trigger result', () => {
       const timetableReturn = Promise.resolve()
       timetable.trigger.mockReturnValue(timetableReturn)
 
       const simutationReturn = simualteResolution(testResolution, snapshot, timetable)
       expect(simutationReturn).toBe(timetableReturn)
+    })
+
+    it('Produces message that matches snapshot', () => {
+      simualteResolution(testResolution, snapshot, timetable)
+      expect(snapshot.add.mock.calls[0]).toMatchSnapshot()
     })
   })
 
@@ -173,12 +168,12 @@ describe('resolutionUtils', () => {
       Promise.all([
         normalizeErrorPromise, 
         snapshotErrorPromise,
-        timetableErrorPromise
+        timetableErrorPromise,
       ])
         .then(() => {
           done()
         })
-        .catch(err => console.error(err))
+        .catch(done)
     })
   })
 })

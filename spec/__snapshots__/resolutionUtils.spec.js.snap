@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`resolutionUtils Simualte resolution Produces message that matches snapshot 1`] = `
+Array [
+  "RESOLUTION: someName -> resolve",
+  Object {
+    "a": "b",
+  },
+]
+`;
