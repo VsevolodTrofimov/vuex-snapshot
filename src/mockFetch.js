@@ -1,9 +1,10 @@
 import timetable from './timetable'
-import useGlobally from './useGlobally'
+import {useGlobally} from './utility'
 
 
 const RealPromise = Promise
 const realFetch = typeof fetch === 'undefined' ? () => {} : fetch
+
 
 /**
  * Creates mock fetch that can be resolved manually and properly serialized 

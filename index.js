@@ -1,15 +1,65 @@
 import * as promiseLib from './src/mockPromise'
 import * as fetchLib from './src/mockFetch'
-import * as timetable from './src/timetable'
-import snapAction from './src/snapAction'
-import snapState from './src/snapState'
+import timetable from './src/timetable'
+import snapActionCore from './src/snapAction'
+
+
+const config = {}
+const resetConfig = () => {
+  config.autoResolve = false
+}
+resetConfig()
+
+
+/**
+ * @typedef {{name:string, type: ("resolve" | "reject"), payload}} Resolution
+ */
+/**
+ * Takes snapshot of action's evaluation
+ * @param {Function} action action to test
+ * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
+ * @param {[(string | Resolution)]} resolutions
+ * @param {Snapshot} snapshot
+ * @param {Tiemtable} timetable
+ * @returns  {(string | Promise<string>)}
+ */
+const snapAction = (action, mocks={}, resolutions=[], snapshot, timetable) => {
+  console.log(autoResolve)
+  if(Array.isArray(mocks)) {
+    resolutions = mocks
+    mocks = {}
+  }
+
+  const commit = mocks.commit || (() => {})
+  const dispatch = mocks.dispatch || (() => {})
+
+  const options = {
+    autoResolve: config.autoResolve
+  }
+  
+  snapActionCore(
+    action, 
+    {
+      payload: mocks.payload,
+      state: mocks.state,
+      getters: mocks.getters,
+      commit,
+      dispatch
+    }, 
+    resolutions, 
+    options,
+  )
+}
+
 
 export default {
   snapAction,
-  snapState,
 
   timetable,
   resetTimetable: timetable.reset,
+
+  config,
+  resetConfig,
 
   mockFetch: fetchLib.mockFetch,
   useMockFetch: fetchLib.useMock,

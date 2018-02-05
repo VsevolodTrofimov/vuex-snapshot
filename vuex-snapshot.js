@@ -1,9 +1,15 @@
 'use strict';
 
-const RealPromise = Promise;
+const find = (arr, matchFn) => {
+  for(let i = 0; i < arr.length; ++i) {
+    if(matchFn(arr[i])) return arr[i]
+  }
+};
 
 
-const entries = [];
+const useGlobally = (name, value) => {
+  window[name] = value;
+};
 
 
 const makeSuffix = () => {
@@ -13,6 +19,9 @@ const makeSuffix = () => {
 
   return suffix
 };
+
+const RealPromise = Promise;
+const entries = [];
 
 
 const register = ({name, promise, payload, resolve, reject}) => {
@@ -26,18 +35,19 @@ const register = ({name, promise, payload, resolve, reject}) => {
 
   // make sure name is unique
   const suffix = makeSuffix();
-  while(entries.filter(e => e.name === name + suffix()).length) suffix.next();
+  while(find(entries, e => e.name === name + suffix())) suffix.next();
 
   entry.name = name + suffix();
+
   entries.push(entry);
 };
 
 
 const trigger = ({name, type, payload}) => {
   const suffix = makeSuffix();
-  while(entries.filter(e => e.name === name + suffix() && e.called).length) suffix.next();
+  while(find(entries, e => e.name === name + suffix() && e.called)) suffix.next();
   
-  const entry = entries.filter(e => e.name === name + suffix())[0];
+  const entry = find(entries, e => e.name === name + suffix());
   
   return new RealPromise((resolve, reject) => {
     if(typeof entry === 'undefined') {
@@ -55,32 +65,19 @@ const trigger = ({name, type, payload}) => {
 
 const reset = () => entries.length = 0;
 
-var timetable = {
+var timetable$1 = {
   register,
   trigger,
   reset,
   entries
 }
 
-var timetable$1 = Object.freeze({
-	entries: entries,
-	makeSuffix: makeSuffix,
-	register: register,
-	reset: reset,
-	default: timetable
-});
-
-const useGlobally = (name, value) => {
-  window[name] = value;
-};
-
 const RealPromise$1 = Promise;
-
 
 
 class MockPromise extends RealPromise$1 {
   /**
-   * Creates a named promise that can be resolved manually and properly serialized 
+   * Named promise that can be resolved manually and properly serialized 
    * and registers it in timetable
    * @param {Function} cb 
    * @param {string} name
@@ -104,7 +101,7 @@ class MockPromise extends RealPromise$1 {
     super(cbProxy);
 
     this.name = name;
-    timetable.register({
+    timetable$1.register({
       name,
       promise: this,
       payload: cb,
@@ -120,6 +117,7 @@ const useReal = () => useGlobally('Promise', RealPromise$1);
 
 const RealPromise$2 = Promise;
 const realFetch = typeof fetch === 'undefined' ? () => {} : fetch;
+
 
 /**
  * Creates mock fetch that can be resolved manually and properly serialized 
@@ -139,7 +137,7 @@ const mockFetch = (url, init) => {
 
   const simulation = new RealPromise$2(cbProxy);
 
-  timetable.register({
+  timetable$1.register({
     name: url,
     promise: simulation,
     payload: init,
@@ -154,7 +152,18 @@ const mockFetch = (url, init) => {
 const useMock$1 = () => useGlobally('fetch', mockFetch);
 const useReal$1 = () => useGlobally('fetch', realFetch);
 
-const serialize = JSON.stringify;
+class Snapshot {
+  constructor() {
+    this.value = [];
+    this.add = this.add.bind(this);
+  }
+  add(message, payload) {
+    const entry = {};
+    entry.message = message;
+    if(typeof payload !== 'undefined') entry.payload = payload;
+    this.value.push(entry);
+  }
+}
 
 const RealPromise$3 = Promise;
 
@@ -196,13 +205,13 @@ const normalizeResolution = resolution => {
 };
 
 
-const simualteResolution = (resolution, snapCb, timetable) => {
-  snapCb(`RESOLUTION: ${resolution.name} -> ${resolution.type}`, resolution.payload);
+const simualteResolution = (resolution, snapshot, timetable) => {
+  snapshot.add(`RESOLUTION: ${resolution.name} -> ${resolution.type}`, resolution.payload);
   return timetable.trigger(resolution)
 };
 
 
-const simualteResolutions = (resolutions, snapCb, timetable) => {
+const simualteResolutions = (resolutions, snapshot, timetable, options) => {
   return new RealPromise$3((resolveSimulation, rejectSimulation) => {
     const normalResolutions = resolutions.map(normalizeResolution);
     
@@ -212,7 +221,7 @@ const simualteResolutions = (resolutions, snapCb, timetable) => {
         resolveSimulation();
       }
       else {
-        simualteResolution(normalResolutions[idx], snapCb, timetable)
+        simualteResolution(normalResolutions[idx], snapshot, timetable)
           .then(() => simulationLoop(idx + 1))
           .catch(rejectSimulation);
       }
@@ -223,19 +232,6 @@ const simualteResolutions = (resolutions, snapCb, timetable) => {
 };
 
 const RealPromise$4 = Promise;
-
-
-class Snapshot {
-  constructor() {
-    this.value = '';
-    this.add = this.add.bind(this);
-  }
-  add(message, payload) {
-    this.value += message; 
-    if(typeof payload !== 'undefined') this.value += '\n' + serialize(payload);
-    this.value += '\n---\n';
-  }
-}
 
 
 const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
@@ -252,21 +248,13 @@ const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
  * @param {Function} action action to test
  * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
  * @param {[(string | Resolution)]} resolutions
+ * @param {{autoResovle: Boolean}} options
  * @returns  {(string | Promise<string>)}
  */
-const snapAction = (action, mocks={}, resolutions=[]) => {
-  // for 2 arg call (action, resolutions)
-  if(Array.isArray(mocks)) {
-    resolutions = mocks;
-    mocks = {};
-  }
-
-  const commit = mocks.commit || (() => {});
-  const dispatch = mocks.dispatch || (() => {});
-
+const snapAction = (action, mocks, resolutions, options) => {
   const snapshot = new Snapshot();
-  const mockCommit = makeCallSnapper(snapshot, 'COMMIT', commit);
-  const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH', dispatch);
+  const mockCommit = makeCallSnapper(snapshot, 'COMMIT', mocks.commit);
+  const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH', mocks.dispatch);
 
 
   const actionReturn = action({
@@ -290,7 +278,7 @@ const snapAction = (action, mocks={}, resolutions=[]) => {
           resolve(snapshot.value);
         });
       
-      simualteResolutions(resolutions, snapshot.add, timetable)
+      simualteResolutions(resolutions, snapshot.add, timetable, options)
         .then(() => {
           // this is needed to let action to resolve first
           setTimeout(() => {
@@ -312,19 +300,62 @@ const snapAction = (action, mocks={}, resolutions=[]) => {
   }
 };
 
+const config = {};
+const resetConfig = () => {
+  config.autoResolve = false;
+};
+resetConfig();
+
+
 /**
- * Serializes your state the fancy way 
- * (including functions and mock promises)
- * @param {*} state 
+ * @typedef {{name:string, type: ("resolve" | "reject"), payload}} Resolution
  */
-const snapState = state => serialize(state);
+/**
+ * Takes snapshot of action's evaluation
+ * @param {Function} action action to test
+ * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
+ * @param {[(string | Resolution)]} resolutions
+ * @param {Snapshot} snapshot
+ * @param {Tiemtable} timetable
+ * @returns  {(string | Promise<string>)}
+ */
+const snapAction$1 = (action, mocks={}, resolutions=[], snapshot, timetable) => {
+  console.log(autoResolve);
+  if(Array.isArray(mocks)) {
+    resolutions = mocks;
+    mocks = {};
+  }
+
+  const commit = mocks.commit || (() => {});
+  const dispatch = mocks.dispatch || (() => {});
+
+  const options = {
+    autoResolve: config.autoResolve
+  };
+  
+  snapAction(
+    action, 
+    {
+      payload: mocks.payload,
+      state: mocks.state,
+      getters: mocks.getters,
+      commit,
+      dispatch
+    }, 
+    resolutions, 
+    options,
+  );
+};
+
 
 var index = {
-  snapAction,
-  snapState,
+  snapAction: snapAction$1,
 
   timetable: timetable$1,
-  resetTimetable: reset,
+  resetTimetable: timetable$1.reset,
+
+  config,
+  resetConfig,
 
   mockFetch: mockFetch,
   useMockFetch: useMock$1,

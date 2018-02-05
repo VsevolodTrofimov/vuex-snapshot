@@ -1,14 +1,13 @@
 import timetable from './timetable'
-import useGlobally from './useGlobally'
+import {useGlobally} from './utility'
 
 
 const RealPromise = Promise
 
 
-
 export class MockPromise extends RealPromise {
   /**
-   * Creates a named promise that can be resolved manually and properly serialized 
+   * Named promise that can be resolved manually and properly serialized 
    * and registers it in timetable
    * @param {Function} cb 
    * @param {string} name

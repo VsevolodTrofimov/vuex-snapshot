@@ -1,16 +1,8 @@
+import {makeSuffix, find} from './utility'
+
+
 const RealPromise = Promise
-
-
 export const entries = []
-
-
-export const makeSuffix = () => {
-  const suffix = () => suffix.num > 1 ? '[' + suffix.num.toString() + ']' : ''
-  suffix.num = 1
-  suffix.next = () => ++suffix.num
-
-  return suffix
-}
 
 
 export const register = ({name, promise, payload, resolve, reject}) => {
@@ -24,18 +16,19 @@ export const register = ({name, promise, payload, resolve, reject}) => {
 
   // make sure name is unique
   const suffix = makeSuffix()
-  while(entries.filter(e => e.name === name + suffix()).length) suffix.next()
+  while(find(entries, e => e.name === name + suffix())) suffix.next()
 
   entry.name = name + suffix()
+
   entries.push(entry)
 }
 
 
-const trigger = ({name, type, payload}) => {
+export const trigger = ({name, type, payload}) => {
   const suffix = makeSuffix()
-  while(entries.filter(e => e.name === name + suffix() && e.called).length) suffix.next()
+  while(find(entries, e => e.name === name + suffix() && e.called)) suffix.next()
   
-  const entry = entries.filter(e => e.name === name + suffix())[0]
+  const entry = find(entries, e => e.name === name + suffix())
   
   return new RealPromise((resolve, reject) => {
     if(typeof entry === 'undefined') {

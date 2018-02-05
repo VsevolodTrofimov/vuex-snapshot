@@ -1,22 +1,8 @@
-import serialize from './serialize'
-import timetable from './timetable'
+import Snapshot from './snapshot'
 import {simualteResolutions} from './resolutionUtils'
 
 
 const RealPromise = Promise
-
-
-export class Snapshot {
-  constructor() {
-    this.value = ''
-    this.add = this.add.bind(this)
-  }
-  add(message, payload) {
-    this.value += message 
-    if(typeof payload !== 'undefined') this.value += '\n' + serialize(payload)
-    this.value += '\n---\n'
-  }
-}
 
 
 export const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
@@ -33,21 +19,13 @@ export const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
  * @param {Function} action action to test
  * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
  * @param {[(string | Resolution)]} resolutions
+ * @param {{autoResovle: Boolean}} options
  * @returns  {(string | Promise<string>)}
  */
-export const snapAction = (action, mocks={}, resolutions=[]) => {
-  // for 2 arg call (action, resolutions)
-  if(Array.isArray(mocks)) {
-    resolutions = mocks
-    mocks = {}
-  }
-
-  const commit = mocks.commit || (() => {})
-  const dispatch = mocks.dispatch || (() => {})
-
+export const snapAction = (action, mocks, resolutions, options) => {
   const snapshot = new Snapshot()
-  const mockCommit = makeCallSnapper(snapshot, 'COMMIT', commit)
-  const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH', dispatch)
+  const mockCommit = makeCallSnapper(snapshot, 'COMMIT', mocks.commit)
+  const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH', mocks.dispatch)
 
 
   const actionReturn = action({
@@ -71,7 +49,7 @@ export const snapAction = (action, mocks={}, resolutions=[]) => {
           resolve(snapshot.value)
         })
       
-      simualteResolutions(resolutions, snapshot.add, timetable)
+      simualteResolutions(resolutions, snapshot.add, timetable, options)
         .then(() => {
           // this is needed to let action to resolve first
           setTimeout(() => {

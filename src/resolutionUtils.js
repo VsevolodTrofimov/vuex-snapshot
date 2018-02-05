@@ -1,6 +1,3 @@
-import serialize from './serialize'
-
-
 const RealPromise = Promise
 
 
@@ -41,13 +38,13 @@ export const normalizeResolution = resolution => {
 }
 
 
-export const simualteResolution = (resolution, snapCb, timetable) => {
-  snapCb(`RESOLUTION: ${resolution.name} -> ${resolution.type}`, resolution.payload)
+export const simualteResolution = (resolution, snapshot, timetable) => {
+  snapshot.add(`RESOLUTION: ${resolution.name} -> ${resolution.type}`, resolution.payload)
   return timetable.trigger(resolution)
 }
 
 
-export const simualteResolutions = (resolutions, snapCb, timetable) => {
+export const simualteResolutions = (resolutions, snapshot, timetable, options) => {
   return new RealPromise((resolveSimulation, rejectSimulation) => {
     const normalResolutions = resolutions.map(normalizeResolution)
     
@@ -57,7 +54,7 @@ export const simualteResolutions = (resolutions, snapCb, timetable) => {
         resolveSimulation()
       }
       else {
-        simualteResolution(normalResolutions[idx], snapCb, timetable)
+        simualteResolution(normalResolutions[idx], snapshot, timetable)
           .then(() => simulationLoop(idx + 1))
           .catch(rejectSimulation)
       }
