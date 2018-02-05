@@ -1,22 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`snapAction core Maches "sync action" snapshot 1`] = `
-Array [
-  Object {
-    "message": "COMMIT: a",
-    "payload": Object {
-      "isPayload": true,
-    },
-  },
-  Object {
-    "message": "DISPATCH: a",
-    "payload": Object {
-      "isPayload": true,
-    },
-  },
-]
-`;
-
 exports[`snapAction makeCallSnapper Produces message that matches snapshot 1`] = `
 Array [
   "type: name",

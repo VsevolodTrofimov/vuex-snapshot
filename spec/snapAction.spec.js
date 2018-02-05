@@ -119,24 +119,16 @@ describe('snapAction', () => {
         .catch(done)
     })
     
-    it('Maches "sync action" snapshot', () => {
-      expect(snapAction(action, mocks, [], options)).toMatchSnapshot()
-    })
+    it('Snaps info about ENV when snapEnv is ture', () => {
+      options.snapEnv = true
+      const run = snapAction(action, mocks, [], options)
 
-    it('Maches "self resolving async action" snapshot', () => {
-      
-    })
+      expect(run[0].message).toBe('DATA MOCKS')
+      expect(run[0].payload.state).toBe(mocks.state)
+      expect(run[0].payload.getters).toBe(mocks.getters)
 
-    it('Maches "fetch async action" snapshot', () => {
-      
-    })
-
-    it('Maches "resolution table async action" snapshot', () => {
-      
-    })
-
-    it('Matches "snapEnv" snapshot', () => {
-
+      expect(run[1].message).toBe('ACTION CALL')
+      expect(run[1].payload).toBe(mocks.payload)
     })
 
     it('Pipes errors up and returns run as far as it happend', done => {

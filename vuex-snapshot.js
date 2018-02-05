@@ -269,15 +269,6 @@ const snapAction = (action, mocks, resolutions, options) => {
   const mockCommit = makeCallSnapper(snapshot, 'COMMIT', mocks.commit);
   const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH', mocks.dispatch);
 
-
-  const actionReturn = action({
-    commit: mockCommit,
-    dispatch: mockDispatch,
-    state: mocks.state,
-    getters: mocks.getters
-  }, mocks.payload);
-
-
   if(options.snapEnv) {
     snapshot.add('DATA MOCKS', {
       state: mocks.state,
@@ -286,6 +277,12 @@ const snapAction = (action, mocks, resolutions, options) => {
     snapshot.add('ACTION CALL', mocks.payload);
   }
 
+  const actionReturn = action({
+    commit: mockCommit,
+    dispatch: mockDispatch,
+    state: mocks.state,
+    getters: mocks.getters
+  }, mocks.payload);
 
   if(typeof actionReturn !== 'undefined' && actionReturn instanceof Promise) {
     // action is async
