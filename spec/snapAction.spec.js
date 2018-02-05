@@ -29,6 +29,7 @@ describe('snapAction', () => {
     })
   })
 
+  
   describe('core', () => {
     const mocks = {}
     const options = {}

@@ -80,6 +80,7 @@ describe('resolutionUtils', () => {
     })
   })
 
+  
   describe('Simualte resolutions', () => {
     let testResolution
     let resolutions
