@@ -63,7 +63,7 @@ const trigger = ({name, type, payload}) => {
 
 const reset = () => entries.length = 0;
 
-var timetable$1 = {
+var timetable = {
   register,
   trigger,
   reset,
@@ -102,7 +102,7 @@ class MockPromise extends RealPromise$1 {
     this.resolve = resovleTrigger;
     this.reject = rejectTrigger;
 
-    timetable$1.register({
+    timetable.register({
       name,
       promise: this,
       payload: cb,
@@ -141,7 +141,7 @@ const mockFetch = (url, init) => {
   simulation.resolve = resovleTrigger;
   simulation.reject = rejectTrigger;
 
-  timetable$1.register({
+  timetable.register({
     name: url,
     promise: simulation,
     payload: init,
@@ -259,7 +259,7 @@ const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
  * @param {Function} action action to test
  * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
  * @param {[(string | Resolution)]} resolutions
- * @param {{autoResovle: Boolean}} options
+ * @param {{autoResovle: Boolean, snapEnv: Boolean}} options
  * @returns  {(string | Promise<string>)}
  */
 const snapAction = (action, mocks, resolutions, options) => {
@@ -276,6 +276,15 @@ const snapAction = (action, mocks, resolutions, options) => {
   }, mocks.payload);
 
 
+  if(options.snapEnv) {
+    snapshot.add('DATA MOCKS', {
+      state: mocks.state,
+      getters: mocks.getters
+    });
+    snapshot.add('ACTION CALL', mocks.payload);
+  }
+
+
   if(typeof actionReturn !== 'undefined' && actionReturn instanceof Promise) {
     // action is async
     return new RealPromise$4((resolve, reject) => {
@@ -289,7 +298,7 @@ const snapAction = (action, mocks, resolutions, options) => {
           resolve(snapshot.value);
         });
       
-      simualteResolutions(resolutions, snapshot.add, timetable, options)
+      simualteResolutions(resolutions, snapshot, timetable, options)
         .then(() => {
           // this is needed to let action to resolve first
           setTimeout(() => {
@@ -300,7 +309,7 @@ const snapAction = (action, mocks, resolutions, options) => {
         .catch(err => {
           reject({
             err,
-            snapshot
+            run: snapshot.value
           });
         });
 
@@ -330,7 +339,7 @@ resetConfig();
  * @param {Tiemtable} timetable
  * @returns  {(string | Promise<string>)}
  */
-const snapAction$1 = (action, mocks={}, resolutions=[], snapshot, timetable) => {
+const snapAction$1 = (action, mocks={}, resolutions=[], snapshot, timetable$$1) => {
   console.log(autoResolve);
   if(Array.isArray(mocks)) {
     resolutions = mocks;
@@ -362,8 +371,8 @@ const snapAction$1 = (action, mocks={}, resolutions=[], snapshot, timetable) => 
 var index = {
   snapAction: snapAction$1,
 
-  timetable: timetable$1,
-  resetTimetable: timetable$1.reset,
+  timetable,
+  resetTimetable: timetable.reset,
 
   config,
   resetConfig,

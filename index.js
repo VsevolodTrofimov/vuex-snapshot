@@ -7,9 +7,14 @@ import snapActionCore from './src/snapAction'
 const config = {}
 const resetConfig = () => {
   config.autoResolve = false
+  config.snapEnv = false
 }
 resetConfig()
 
+const reset = () => {
+  resetConfig()
+  timetable.reset()
+}
 
 /**
  * @typedef {{name:string, type: ("resolve" | "reject"), payload}} Resolution
@@ -54,6 +59,7 @@ const snapAction = (action, mocks={}, resolutions=[], snapshot, timetable) => {
 
 export default {
   snapAction,
+  reset,
 
   timetable,
   resetTimetable: timetable.reset,

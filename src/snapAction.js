@@ -1,6 +1,6 @@
 import Snapshot from './snapshot'
 import {simualteResolutions} from './resolutionUtils'
-
+import timetable from '../src/timetable'
 
 const RealPromise = Promise
 
@@ -19,7 +19,7 @@ export const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
  * @param {Function} action action to test
  * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
  * @param {[(string | Resolution)]} resolutions
- * @param {{autoResovle: Boolean}} options
+ * @param {{autoResovle: Boolean, snapEnv: Boolean}} options
  * @returns  {(string | Promise<string>)}
  */
 export const snapAction = (action, mocks, resolutions, options) => {
@@ -36,6 +36,15 @@ export const snapAction = (action, mocks, resolutions, options) => {
   }, mocks.payload)
 
 
+  if(options.snapEnv) {
+    snapshot.add('DATA MOCKS', {
+      state: mocks.state,
+      getters: mocks.getters
+    })
+    snapshot.add('ACTION CALL', mocks.payload)
+  }
+
+
   if(typeof actionReturn !== 'undefined' && actionReturn instanceof Promise) {
     // action is async
     return new RealPromise((resolve, reject) => {
@@ -49,7 +58,7 @@ export const snapAction = (action, mocks, resolutions, options) => {
           resolve(snapshot.value)
         })
       
-      simualteResolutions(resolutions, snapshot.add, timetable, options)
+      simualteResolutions(resolutions, snapshot, timetable, options)
         .then(() => {
           // this is needed to let action to resolve first
           setTimeout(() => {
@@ -60,7 +69,7 @@ export const snapAction = (action, mocks, resolutions, options) => {
         .catch(err => {
           reject({
             err,
-            snapshot
+            run: snapshot.value
           })
         })
 
