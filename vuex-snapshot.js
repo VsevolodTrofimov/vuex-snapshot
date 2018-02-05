@@ -322,12 +322,24 @@ const snapAction = (action, mocks, resolutions, options) => {
   }
 };
 
-const config = {};
-const resetConfig = () => {
-  config.autoResolve = false;
+const defaultConfig = {
+  autoResolve: false,
+  snapEnv: false
 };
+
+/**
+ * @namespace
+ * @property {Boolean} autoResolve resolve all MockPromises and fetches in order they were created
+ * @property {Boolean} snapEnv include state, getters and paylaod into snapshot
+ */
+const config = {};
+const resetConfig = () => Object.assign(config, defaultConfig);
 resetConfig();
 
+const reset$1 = () => {
+  resetConfig();
+  timetable.reset();
+};
 
 /**
  * @typedef {{name:string, type: ("resolve" | "reject"), payload}} Resolution
@@ -352,7 +364,8 @@ const snapAction$1 = (action, mocks={}, resolutions=[], snapshot, timetable$$1) 
   const dispatch = mocks.dispatch || (() => {});
 
   const options = {
-    autoResolve: config.autoResolve
+    autoResolve: config.autoResolve,
+    snapEnv: config.snapEnv,
   };
   
   snapAction(
@@ -372,6 +385,7 @@ const snapAction$1 = (action, mocks={}, resolutions=[], snapshot, timetable$$1) 
 
 var index = {
   snapAction: snapAction$1,
+  reset: reset$1,
 
   timetable,
   resetTimetable: timetable.reset,

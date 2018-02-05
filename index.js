@@ -4,11 +4,18 @@ import timetable from './src/timetable'
 import snapActionCore from './src/snapAction'
 
 
-const config = {}
-const resetConfig = () => {
-  config.autoResolve = false
-  config.snapEnv = false
+const defaultConfig = {
+  autoResolve: false,
+  snapEnv: false
 }
+
+/**
+ * @namespace
+ * @property {Boolean} autoResolve resolve all MockPromises and fetches in order they were created
+ * @property {Boolean} snapEnv include state, getters and paylaod into snapshot
+ */
+const config = {}
+const resetConfig = () => Object.assign(config, defaultConfig)
 resetConfig()
 
 const reset = () => {
@@ -39,7 +46,8 @@ const snapAction = (action, mocks={}, resolutions=[], snapshot, timetable) => {
   const dispatch = mocks.dispatch || (() => {})
 
   const options = {
-    autoResolve: config.autoResolve
+    autoResolve: config.autoResolve,
+    snapEnv: config.snapEnv,
   }
   
   snapActionCore(

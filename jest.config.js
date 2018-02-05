@@ -10,6 +10,7 @@ module.exports = {
   "collectCoverage": true,
   "collectCoverageFrom": [
     "src/**/*.js",
+    "index.js"
   ],
   coverageReporters: ["lcov", "json"],
   "mapCoverage": true
