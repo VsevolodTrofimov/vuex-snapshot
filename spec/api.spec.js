@@ -11,9 +11,14 @@ describe('API', () => {
     expect(vuexSnapshot.config.snapEnv).toBe(false)
   })
 
+  it('Has allowManualActionResolution option, with default of false', () => {
+    expect(vuexSnapshot.config.allowManualActionResolution).toBe(false)
+  })
+
   it('resets config w/ .resetConfig', () => {
     vuexSnapshot.config.autoResolve = true
     vuexSnapshot.config.snapEnv = true
+    vuexSnapshot.config.allowManualActionResolution = false
 
     vuexSnapshot.resetConfig()
     expect(vuexSnapshot.config.snapEnv).toBe(false)

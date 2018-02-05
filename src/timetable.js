@@ -44,11 +44,20 @@ export const trigger = ({name, type, payload}) => {
 }
 
 
+export const ensureAbsence = (promise) => {
+  for(let i = 0; i < entries.length; ++i) {
+    if(entries[i].promise === promise) {
+      entries.splice(i, 1)
+    }
+  }
+}
+
 export const reset = () => entries.length = 0
 
 export default {
   register,
   trigger,
   reset,
-  entries
+  entries,
+  ensureAbsence,
 }

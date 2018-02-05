@@ -61,13 +61,22 @@ const trigger = ({name, type, payload}) => {
 };
 
 
+const ensureAbsence = (promise) => {
+  for(let i = 0; i < entries.length; ++i) {
+    if(entries[i].promise === promise) {
+      entries.splice(i, 1);
+    }
+  }
+};
+
 const reset = () => entries.length = 0;
 
 var timetable = {
   register,
   trigger,
   reset,
-  entries
+  entries,
+  ensureAbsence,
 }
 
 const RealPromise$1 = Promise;
@@ -284,6 +293,10 @@ const snapAction = (action, mocks, resolutions, options) => {
 
   if(typeof actionReturn !== 'undefined' && actionReturn instanceof Promise) {
     // action is async
+    if(!options.allowManualActionResolution) {
+      timetable.ensureAbsence(actionReturn);
+    }
+
     return new RealPromise$4((resolve, reject) => {
       actionReturn
         .then(payload => {
@@ -321,10 +334,12 @@ const snapAction = (action, mocks, resolutions, options) => {
  * @namespace 
  * @property {Boolean} autoResolve resolve all MockPromises and fetches in order they were created
  * @property {Boolean} snapEnv include state, getters and paylaod into snapshot
+ * @property {Boolean} allowManualActionResolution simaulation can now resolve action'sReturn value
  */
 const options = {
   autoResolve: false,
-  snapEnv: false
+  snapEnv: false,
+  allowManualActionResolution: false
 };
 
 // they are likely to stay flat

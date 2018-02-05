@@ -1,7 +1,9 @@
 import {snapAction, makeCallSnapper} from '../src/snapAction'
 import { MockPromise } from '../src/mockPromise'
 import timetable from '../src/timetable'
-import snapshot from '../src/snapshot';
+import snapshot from '../src/snapshot'
+import config from '../src/config'
+
 
 describe('snapAction', () => {
   describe('makeCallSnapper', () => {
@@ -45,8 +47,7 @@ describe('snapAction', () => {
       mocks.dispatch = jest.fn()
       mocks.payload = {isPayload: true}
 
-      options.autoResovle = false
-      options.snapEnv = false
+      Object.assign(options, config.options)
 
       action = jest.fn(({commit, dispatch}, payload) => {
         commit('a', payload)
@@ -69,8 +70,12 @@ describe('snapAction', () => {
     })
 
     it('Always ends with action resolution message for async actions', done => {
-      const actionResolve = () => new MockPromise('will.resolve')
-      const actionReject = () => new MockPromise('will.reject')
+      const actionResolve = () => new Promise((resolve) => {
+        new MockPromise('will.resolve').then(resolve)
+      })
+      const actionReject = () => new Promise((resolve, reject) => {
+        new MockPromise('will.reject').catch(reject)
+      })
       const actionIdle = () => {
         new MockPromise('will.resolve')
         return new Promise(() => {})

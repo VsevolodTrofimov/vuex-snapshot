@@ -22,7 +22,7 @@ describe('timetable', () => {
   describe('register', () => {
     beforeEach(timetable.reset)
 
-    it('adds to entries', () => {
+    it('Adds to entries', () => {
       const realPush = timetable.entries.push
       timetable.entries.push = jest.fn(realPush)
       
@@ -34,7 +34,7 @@ describe('timetable', () => {
       timetable.entries.push = realPush
     })
 
-    it('avoids name duplication', () => {   
+    it('Avoids name duplication', () => {   
       timetable.register(testEntry)
       timetable.register(testEntry)
 
@@ -49,27 +49,27 @@ describe('timetable', () => {
       timetable.register(testEntry)
     })
     
-    it('returns a promise', () => {
+    it('Returns a promise', () => {
       expect(timetable.trigger(testResolution) instanceof Promise).toBe(true)
     })
 
-    it('resolves entry`s promise correctly', () => {
+    it('Resolves entry`s promise correctly', () => {
       timetable.trigger(testResolution)
       expect(testEntry.resolve).toBeCalled()
     })
     
-    it('rejects entry`s promise correctly', () => {
+    it('Rejects entry`s promise correctly', () => {
       testResolution.type = 'reject'
       timetable.trigger(testResolution)
       expect(testEntry.reject).toBeCalled()
     })
 
-    it('passes payload', () => {
+    it('Passes payload', () => {
       timetable.trigger(testResolution)
       expect(testEntry.resolve).toBeCalledWith(testResolution.payload)
     })
 
-    it('resolves correct promise', () => {
+    it('Resolves correct promise', () => {
       timetable.reset()
       timetable.register({
         name: 'some trash'
@@ -80,7 +80,7 @@ describe('timetable', () => {
       expect(testEntry.resolve).toBeCalled()
     })
 
-    it('never resolves promise twice', () => {
+    it('Never resolves promise twice', () => {
       const testEntry2 = {
         name: testEntry.name,
         promise: new Promise(() => {}),
@@ -99,7 +99,7 @@ describe('timetable', () => {
       expect(testEntry.resolve.mock.calls.length).toBe(1)
     })
 
-    it('rejects if entry is note there', done => {
+    it('Rejects if entry is note there', done => {
       testResolution.name = testEntry.name + 'ahahhah'
       timetable.trigger(testResolution)
         .catch(err => {
@@ -109,9 +109,48 @@ describe('timetable', () => {
     })
   })
 
+  describe('ensureAbsence', () => {
+    beforeEach(() => {
+      timetable.reset()
+      timetable.register(testEntry)
+    })
+
+    it('Removes entry if it`s there', () => {
+      timetable.ensureAbsence(testEntry.promise)
+
+      expect(timetable.entries.length).toBe(0)
+    })
+
+    it('Only removes entry that has passed promise', () => {
+      const testEntry2 = {
+        name: testEntry.name,
+        promise: new Promise(() => {}),
+        resolve: jest.fn(),
+        reject: jest.fn(),
+      }
+
+      const testEntry3 = {
+        name: testEntry.name,
+        promise: new Promise(() => {}),
+        resolve: jest.fn(),
+        reject: jest.fn(),
+      }
+
+      timetable.register(testEntry2)
+      timetable.register(testEntry3)
+      timetable.ensureAbsence(testEntry3)
+      expect(timetable.entries[0].promise).toBe(testEntry.promise)
+      expect(timetable.entries[1].promise).toBe(testEntry2.promise)
+    })
+
+    it('Dosen`t change entries if there isn`t one it looks for', () => {
+      timetable.ensureAbsence(new Promise(() => {}))
+      expect(timetable.entries.length).toBe(1)
+    })
+  })
 
   describe('reset', () => {
-    it('empies entries array', () => {
+    it('Empties entries array', () => {
       timetable.register(testEntry)
 
       timetable.reset()

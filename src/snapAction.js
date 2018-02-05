@@ -44,6 +44,10 @@ export const snapAction = (action, mocks, resolutions, options) => {
 
   if(typeof actionReturn !== 'undefined' && actionReturn instanceof Promise) {
     // action is async
+    if(!options.allowManualActionResolution) {
+      timetable.ensureAbsence(actionReturn)
+    }
+
     return new RealPromise((resolve, reject) => {
       actionReturn
         .then(payload => {
