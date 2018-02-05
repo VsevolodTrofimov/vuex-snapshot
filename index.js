@@ -2,24 +2,14 @@ import * as promiseLib from './src/mockPromise'
 import * as fetchLib from './src/mockFetch'
 import timetable from './src/timetable'
 import snapActionCore from './src/snapAction'
+import config from './src/config'
 
-
-const defaultConfig = {
-  autoResolve: false,
-  snapEnv: false
-}
 
 /**
- * @namespace
- * @property {Boolean} autoResolve resolve all MockPromises and fetches in order they were created
- * @property {Boolean} snapEnv include state, getters and paylaod into snapshot
+ * Resets config and timetable
  */
-const config = {}
-const resetConfig = () => Object.assign(config, defaultConfig)
-resetConfig()
-
 const reset = () => {
-  resetConfig()
+  config.reset()
   timetable.reset()
 }
 
@@ -31,12 +21,9 @@ const reset = () => {
  * @param {Function} action action to test
  * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
  * @param {[(string | Resolution)]} resolutions
- * @param {Snapshot} snapshot
- * @param {Tiemtable} timetable
- * @returns  {(string | Promise<string>)}
+ * @returns {(Array | Promise<Array>)}
  */
-const snapAction = (action, mocks={}, resolutions=[], snapshot, timetable) => {
-  console.log(autoResolve)
+const snapAction = (action, mocks={}, resolutions=[]) => {
   if(Array.isArray(mocks)) {
     resolutions = mocks
     mocks = {}
@@ -72,8 +59,8 @@ export default {
   timetable,
   resetTimetable: timetable.reset,
 
-  config,
-  resetConfig,
+  config: config.options,
+  resetConfig: config.reset,
 
   mockFetch: fetchLib.mockFetch,
   useMockFetch: fetchLib.useMock,

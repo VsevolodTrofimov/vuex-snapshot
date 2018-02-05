@@ -319,22 +319,31 @@ const snapAction = (action, mocks, resolutions, options) => {
   }
 };
 
-const defaultConfig = {
+/**
+ * @namespace 
+ * @property {Boolean} autoResolve resolve all MockPromises and fetches in order they were created
+ * @property {Boolean} snapEnv include state, getters and paylaod into snapshot
+ */
+const options = {
   autoResolve: false,
   snapEnv: false
 };
 
-/**
- * @namespace
- * @property {Boolean} autoResolve resolve all MockPromises and fetches in order they were created
- * @property {Boolean} snapEnv include state, getters and paylaod into snapshot
- */
-const config = {};
-const resetConfig = () => Object.assign(config, defaultConfig);
-resetConfig();
+// they are likely to stay flat
+const defaults = Object.assign({}, options);
+const reset$1 = () => Object.assign(options, defaults);
+reset$1();
 
-const reset$1 = () => {
-  resetConfig();
+var config = {
+  options,
+  reset: reset$1
+}
+
+/**
+ * Resets config and timetable
+ */
+const reset$2 = () => {
+  config.reset();
   timetable.reset();
 };
 
@@ -346,12 +355,9 @@ const reset$1 = () => {
  * @param {Function} action action to test
  * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
  * @param {[(string | Resolution)]} resolutions
- * @param {Snapshot} snapshot
- * @param {Tiemtable} timetable
- * @returns  {(string | Promise<string>)}
+ * @returns {(Array | Promise<Array>)}
  */
-const snapAction$1 = (action, mocks={}, resolutions=[], snapshot, timetable$$1) => {
-  console.log(autoResolve);
+const snapAction$1 = (action, mocks={}, resolutions=[]) => {
   if(Array.isArray(mocks)) {
     resolutions = mocks;
     mocks = {};
@@ -382,13 +388,13 @@ const snapAction$1 = (action, mocks={}, resolutions=[], snapshot, timetable$$1) 
 
 var index = {
   snapAction: snapAction$1,
-  reset: reset$1,
+  reset: reset$2,
 
   timetable,
   resetTimetable: timetable.reset,
 
-  config,
-  resetConfig,
+  config: config.options,
+  resetConfig: config.reset,
 
   mockFetch: mockFetch,
   useMockFetch: useMock$1,
