@@ -54,7 +54,7 @@ const trigger = ({name, type, payload}) => {
   
     entry[type](payload);
     entry.called = true;
-    Promise.resolve().then(resolve); //this would happen right after entry's promise resolutions
+    RealPromise.resolve().then(resolve); //this would happen right after entry's promise resolutions
   })
 };
 
@@ -166,13 +166,26 @@ const useReal$1 = () => useGlobally('fetch', realFetch);
 class Snapshot {
   constructor() {
     this.value = [];
+    this.frozen = false;
     this.add = this.add.bind(this);
+    this.freeze = this.freeze.bind(this);
+    this.unfreeze = this.unfreeze.bind(this);
   }
+
   add(message, payload) {
+    if(this.frozen) return
     const entry = {};
     entry.message = message;
     if(typeof payload !== 'undefined') entry.payload = payload;
     this.value.push(entry);
+  }
+
+  freeze() {
+    this.frozen = true;
+  }
+
+  unfreeze() {
+    this.frozen = false;
   }
 }
 
@@ -321,10 +334,12 @@ const snapAction = (action, mocks, resolutions, options) => {
       actionReturn
         .then(payload => {
           snapshot.add('ACTION RESOLVED', payload);
+          snapshot.freeze();
           resolve(snapshot.value);
         })
         .catch(payload => {
           snapshot.add('ACTION REJECTED', payload);
+          snapshot.freeze();
           resolve(snapshot.value);
         });
       

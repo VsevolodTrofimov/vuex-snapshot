@@ -53,10 +53,12 @@ export const snapAction = (action, mocks, resolutions, options) => {
       actionReturn
         .then(payload => {
           snapshot.add('ACTION RESOLVED', payload)
+          snapshot.freeze()
           resolve(snapshot.value)
         })
         .catch(payload => {
           snapshot.add('ACTION REJECTED', payload)
+          snapshot.freeze()
           resolve(snapshot.value)
         })
       

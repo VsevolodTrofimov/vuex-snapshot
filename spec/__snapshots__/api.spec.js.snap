@@ -42,9 +42,6 @@ Array [
   Object {
     "message": "ACTION RESOLVED",
   },
-  Object {
-    "message": "RESOLUTION: Promise[2] -> resolve",
-  },
 ]
 `;
 
