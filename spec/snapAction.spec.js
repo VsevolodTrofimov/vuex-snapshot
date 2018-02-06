@@ -53,9 +53,18 @@ describe('snapAction', () => {
       action = jest.fn(({commit, dispatch}, payload) => {
         commit('a', payload)
         dispatch('a', payload)
+
+        return 'someval'
       })
     })
     
+    it('Stays sync if action did not return a promise', () => {
+      const snap = snapAction(action, mocks, [], {})
+
+      expect(action).toBeCalled()
+      expect(snap instanceof Promise).toBe(false)
+    })
+
     it('Passes mocks', () => {
       snapAction(action, mocks, [], {})
 
@@ -135,6 +144,18 @@ describe('snapAction', () => {
 
       expect(run[1].message).toBe('ACTION CALL')
       expect(run[1].payload).toBe(mocks.payload)
+    })
+
+    it('Resovles promise returned by action when manual resolution is se to true', done => {
+      options.allowManualActionResolution = true
+      const action = () => new MockPromise('ActionPromise')
+
+      snapAction(action, mocks, ['ActionPromise'], options)
+        .then(run => {
+          expect(run[run.length - 1].message).toBe('ACTION RESOLVED')
+          done()
+        })
+        .catch(done)
     })
 
     it('Pipes errors up and returns run as far as it happend', done => {
