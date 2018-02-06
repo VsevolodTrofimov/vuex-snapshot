@@ -11,6 +11,8 @@ import config from './src/config'
 const reset = () => {
   config.reset()
   timetable.reset()
+  promiseLib.useReal()
+  fetchLib.useReal()
 }
 
 /**
