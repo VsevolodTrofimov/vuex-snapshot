@@ -132,9 +132,28 @@ describe('resolutionUtils', () => {
         .catch(done)
     })
 
-
     it('Simulates resolutions one by one', done => {
-      done()
+      const p1 = new MockPromise('p1')
+      const p2 = new MockPromise('p2')
+      const p3 = new MockPromise('p3')
+    
+      p1.then(() => {
+        expect(timetable.trigger.mock.calls.length).toBe(1)
+      })
+
+      p2.then(() => {
+        expect(timetable.trigger.mock.calls.length).toBe(1)
+      })
+
+      p3.then(() => {
+        expect(timetable.trigger.mock.calls.length).toBe(1)
+        return new MockPromise('p4')
+      })
+
+      simualteResolutions(['p1', 'p2', 'p3', 'p4'], snapshot, timetable, options)
+        .then(() => {
+          done()
+        })
     })
     
     it('Pipes errors up', done => {
