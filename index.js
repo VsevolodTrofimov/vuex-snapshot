@@ -31,13 +31,8 @@ const snapAction = (action, mocks={}, resolutions=[]) => {
 
   const commit = mocks.commit || (() => {})
   const dispatch = mocks.dispatch || (() => {})
-
-  const options = {
-    autoResolve: config.autoResolve,
-    snapEnv: config.snapEnv,
-  }
   
-  snapActionCore(
+  return snapActionCore(
     action, 
     {
       payload: mocks.payload,
@@ -47,7 +42,7 @@ const snapAction = (action, mocks={}, resolutions=[]) => {
       dispatch
     }, 
     resolutions, 
-    options,
+    config.options,
   )
 }
 

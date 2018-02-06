@@ -126,7 +126,7 @@ const useMock = () => useGlobally('Promise', MockPromise);
 const useReal = () => useGlobally('Promise', RealPromise$1);
 
 const RealPromise$2 = Promise;
-const realFetch = typeof fetch === 'undefined' ? () => {} : fetch;
+const realFetch = window.fetch;
 
 
 /**
@@ -378,13 +378,8 @@ const snapAction$1 = (action, mocks={}, resolutions=[]) => {
 
   const commit = mocks.commit || (() => {});
   const dispatch = mocks.dispatch || (() => {});
-
-  const options = {
-    autoResolve: config.autoResolve,
-    snapEnv: config.snapEnv,
-  };
   
-  snapAction(
+  return snapAction(
     action, 
     {
       payload: mocks.payload,
@@ -394,8 +389,8 @@ const snapAction$1 = (action, mocks={}, resolutions=[]) => {
       dispatch
     }, 
     resolutions, 
-    options,
-  );
+    config.options,
+  )
 };
 
 
