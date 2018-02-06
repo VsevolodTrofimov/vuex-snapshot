@@ -1,0 +1,149 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`API Snapshots (backwards compability check) Async fetch 1`] = `
+Array [
+  Object {
+    "message": "RESOLUTION: http://api.example.com/whatever -> resolve",
+    "payload": Object {
+      "json": [Function],
+    },
+  },
+  Object {
+    "message": "RESOLUTION: json -> resolve",
+    "payload": Object {
+      "data": "yep",
+      "important": true,
+    },
+  },
+  Object {
+    "message": "DISPATCH: useExample",
+    "payload": Object {
+      "data": "yep",
+      "important": true,
+    },
+  },
+  Object {
+    "message": "ACTION RESOLVED",
+  },
+]
+`;
+
+exports[`API Snapshots (backwards compability check) Async inner promise 1`] = `
+Array [
+  Object {
+    "message": "COMMIT: smth",
+  },
+  Object {
+    "message": "RESOLUTION: Promise -> resolve",
+  },
+  Object {
+    "message": "COMMIT: use",
+  },
+  Object {
+    "message": "ACTION RESOLVED",
+  },
+]
+`;
+
+exports[`API Snapshots (backwards compability check) Async rejected 1`] = `
+Array [
+  Object {
+    "message": "RESOLUTION: http://api.example.com/whatever -> reject",
+    "payload": [TypeError: Failed to fetch],
+  },
+  Object {
+    "message": "DISPATCH: callExampleAPI",
+    "payload": 1,
+  },
+  Object {
+    "message": "ACTION REJECTED",
+    "payload": [TypeError: Failed to fetch],
+  },
+]
+`;
+
+exports[`API Snapshots (backwards compability check) Async simple 1`] = `
+Array [
+  Object {
+    "message": "COMMIT: smth",
+  },
+  Object {
+    "message": "ACTION RESOLVED",
+  },
+]
+`;
+
+exports[`API Snapshots (backwards compability check) Async state or getter promise 1`] = `
+Array [
+  Object {
+    "message": "COMMIT: smth",
+  },
+  Object {
+    "message": "RESOLUTION: preload -> resolve",
+    "payload": "a lot of data",
+  },
+  Object {
+    "message": "COMMIT: use",
+    "payload": "a lot of data",
+  },
+  Object {
+    "message": "ACTION RESOLVED",
+    "payload": "a lot of data",
+  },
+]
+`;
+
+exports[`API Snapshots (backwards compability check) Sync action 1`] = `
+Array [
+  Object {
+    "message": "COMMIT: increment",
+    "payload": 10,
+  },
+  Object {
+    "message": "COMMIT: decrement",
+  },
+  Object {
+    "message": "DISPATCH: something useful",
+    "payload": Object {
+      "notThisOne": "yeah",
+    },
+  },
+]
+`;
+
+exports[`API Snapshots (backwards compability check) Sync action w/ env & payload 1`] = `
+Array [
+  Object {
+    "message": "DATA MOCKS",
+    "payload": Object {
+      "getters": Object {
+        "sadness": Infinity,
+      },
+      "state": Object {
+        "incBig": 100,
+        "irrelevat": false,
+      },
+    },
+  },
+  Object {
+    "message": "ACTION CALL",
+    "payload": Object {
+      "action": [Function],
+    },
+  },
+  Object {
+    "message": "COMMIT: increment",
+    "payload": 100,
+  },
+  Object {
+    "message": "COMMIT: decrement",
+    "payload": Infinity,
+  },
+  Object {
+    "message": "DISPATCH: something useful",
+    "payload": Object {
+      "action": [Function],
+    },
+  },
+]
+`;
