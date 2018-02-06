@@ -1,3 +1,6 @@
+import {find} from './utility'
+
+
 const RealPromise = Promise
 
 
@@ -54,20 +57,42 @@ export const lib = {
 export const simualteResolutions = (resolutions, snapshot, timetable, options) => {
   return new RealPromise((resolveSimulation, rejectSimulation) => {
     const normalResolutions = resolutions.map(lib.normalizeResolution)
-    
-    // simulates given resolution and queues the next until all are simulated
-    const simulationLoop = idx => {
-      if(idx === normalResolutions.length) {
-        resolveSimulation()
-      }
-      else {
-        lib.simualteResolution(normalResolutions[idx], snapshot, timetable)
-          .then(() => simulationLoop(idx + 1))
-          .catch(rejectSimulation)
-      }
-    }
 
-    simulationLoop(0)
+    if(options.autoResolve) {
+      let count = 0 // to break infinite loops
+
+      // finds next uncalled entry and calls it
+      const autoSimulationLoop = () => {
+        count++
+        const nextEntry = find(timetable.entries, e => !e.called)
+        
+        if(nextEntry && count < 1000) {
+          const nextResolution = lib.normalizeResolution(nextEntry.name)
+
+          lib.simualteResolution(nextResolution, snapshot, timetable)
+            .then(autoSimulationLoop)
+            .catch(rejectSimulation)
+        } else {
+          resolveSimulation()
+        }
+      }
+
+      autoSimulationLoop()
+    } else {
+      // simulates given resolution and queues the next until all are simulated
+      const simulationLoop = (idx=0) => {
+        if(idx === normalResolutions.length) {
+          resolveSimulation()
+        }
+        else {
+          lib.simualteResolution(normalResolutions[idx], snapshot, timetable)
+            .then(() => simulationLoop(idx + 1))
+            .catch(rejectSimulation)
+        }
+      }
+
+      simulationLoop()
+    }
   })
 }
 

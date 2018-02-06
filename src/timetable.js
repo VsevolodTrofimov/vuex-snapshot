@@ -37,9 +37,7 @@ export const trigger = ({name, type, payload}) => {
   
     entry[type](payload)
     entry.called = true
-    entry.promise
-      .then(resolve)
-      .catch(resolve)
+    RealPromise.resolve().then(resolve) //this would happen right after entry's promise resolutions
   })
 }
 

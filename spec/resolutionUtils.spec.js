@@ -1,5 +1,7 @@
 import {normalizeResolution, simualteResolution, simualteResolutions, lib} from '../src/resolutionUtils' 
 import { MockPromise } from '../src/mockPromise'
+import config from '../src/config'
+import realTimetable from '../src/timetable'
 
 
 describe('resolutionUtils', () => {
@@ -101,6 +103,8 @@ describe('resolutionUtils', () => {
 
       lib.normalizeResolution = jest.fn(normalizeResolution)
       lib.simualteResolution = jest.fn().mockReturnValue(Promise.resolve())
+
+      Object.assign(options, config.options)
     })
   
     it('Returns a promise', () => {
@@ -153,6 +157,39 @@ describe('resolutionUtils', () => {
       simualteResolutions(['p1', 'p2', 'p3', 'p4'], snapshot, timetable, options)
         .then(() => {
           done()
+        })
+    })
+
+    it('Works with autoresolve', done => {
+      realTimetable.reset()
+      
+      lib.normalizeResolution = normalizeResolution
+      lib.simualteResolution = simualteResolution
+      
+      timetable.trigger = realTimetable.trigger
+      timetable.entries = realTimetable.entries
+
+      const promises = Array.from('p'.repeat(10)).map(p => new MockPromise(p))
+      let allResolved = false
+
+      Promise.all(promises)
+        .then(() => allResolved = true)
+        .catch(err => {
+          console.error('In promise error', err)
+          done(err)
+        })
+
+
+      
+      options.autoResolve = true
+      simualteResolutions([], snapshot, timetable, options)
+        .then(() => {
+          expect(allResolved).toBe(true)
+          done()
+        })
+        .catch(err => {
+          console.error('Simulation error',err)
+          done(err)
         })
     })
     

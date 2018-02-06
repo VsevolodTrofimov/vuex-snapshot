@@ -51,14 +51,12 @@ const trigger = ({name, type, payload}) => {
   
   return new RealPromise((resolve, reject) => {
     if(typeof entry === 'undefined') {
-      reject(new Error(`vuex-snapshot: did not found promise ${name + suffix()}`));
+      reject(new Error(`vuex-snapshot: did not find ${name + suffix()} that wasn't already resolved or rejected`));
     }
   
     entry[type](payload);
     entry.called = true;
-    entry.promise
-      .then(resolve)
-      .catch(resolve);
+    Promise.resolve().then(resolve); //this would happen right after entry's promise resolutions
   })
 };
 
@@ -236,20 +234,42 @@ const lib = {
 const simualteResolutions = (resolutions, snapshot, timetable, options) => {
   return new RealPromise$3((resolveSimulation, rejectSimulation) => {
     const normalResolutions = resolutions.map(lib.normalizeResolution);
-    
-    // simulates given resolution and queues the next until all are simulated
-    const simulationLoop = idx => {
-      if(idx === normalResolutions.length) {
-        resolveSimulation();
-      }
-      else {
-        lib.simualteResolution(normalResolutions[idx], snapshot, timetable)
-          .then(() => simulationLoop(idx + 1))
-          .catch(rejectSimulation);
-      }
-    };
 
-    simulationLoop(0);
+    if(options.autoResolve) {
+      let count = 0; // to break infinite loops
+
+      // finds next uncalled entry and calls it
+      const autoSimulationLoop = () => {
+        count++;
+        const nextEntry = find(timetable.entries, e => !e.called);
+        
+        if(nextEntry && count < 1000) {
+          const nextResolution = lib.normalizeResolution(nextEntry.name);
+
+          lib.simualteResolution(nextResolution, snapshot, timetable)
+            .then(autoSimulationLoop)
+            .catch(rejectSimulation);
+        } else {
+          resolveSimulation();
+        }
+      };
+
+      autoSimulationLoop();
+    } else {
+      // simulates given resolution and queues the next until all are simulated
+      const simulationLoop = (idx=0) => {
+        if(idx === normalResolutions.length) {
+          resolveSimulation();
+        }
+        else {
+          lib.simualteResolution(normalResolutions[idx], snapshot, timetable)
+            .then(() => simulationLoop(idx + 1))
+            .catch(rejectSimulation);
+        }
+      };
+
+      simulationLoop();
+    }
   })
 };
 

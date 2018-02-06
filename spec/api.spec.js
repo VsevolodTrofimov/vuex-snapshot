@@ -10,7 +10,6 @@ snapActionModule.default = snapAction
 // the ones being tested
 import vuexSnapshot from '../index'
 import config from '../src/config'
-import { MockPromise } from '../src/mockPromise';
 
 
 describe('API', () => {
@@ -217,12 +216,13 @@ describe('API', () => {
       const action = ({commit}) => new Promise(resolve => {
         commit('smth')
         new Promise(() => {}).then(data => {
-          commit('use', data)
-          resolve(data)
+          commit('use')
+          resolve()
         })
       })
 
-      vuexSnapshot.snapAction(action, ['Promise'])
+      vuexSnapshot.config.autoResolve = true
+      vuexSnapshot.snapAction(action)
         .then(run => {
           expect(run).toMatchSnapshot()
           done()
@@ -257,23 +257,21 @@ describe('API', () => {
       const action = ({dispatch}, attempts=0) => new Promise((resolve, reject) => {
         const request = fetch('http://api.example.com/whatever')
         request
-          .then(response => response.json())
-          .then(json => {
-            dispatch('useExample', json)
+          .then(res => res.json())
+          .then(data => {
+            dispatch('useExample', data)
             resolve()
           })
           .catch(message => {
             dispatch('callExampleAPI', attempts + 1)
             reject()
           })
-
-        return request
       })
 
       const resolutions = [{
         name: 'http://api.example.com/whatever',
         payload: {
-          json: () => new MockPromise('json')
+          json: () => new vuexSnapshot.MockPromise('json')
         }
       }, {
         name: 'json',
@@ -283,15 +281,16 @@ describe('API', () => {
         }
       }]
 
+      vuexSnapshot.config.datTest = true
       vuexSnapshot.snapAction(action, resolutions)
         .then(run => {
           expect(run).toMatchSnapshot()
           done()
         })
         .catch(err => {
-          console.error(err)
           done(err)
         })
+      vuexSnapshot.config.datTest = false
     })
 
     it('Async rejected', done => {
