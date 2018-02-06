@@ -8,6 +8,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "./node_modules/.bin/jest",
+    "codecov": "./node_modules/.bin/codecov",
     "pretest": "npm run build"
   },
   "repository": {
@@ -30,6 +31,7 @@
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-preset-env": "^1.6.1",
+    "codecov": "^3.0.0",
     "jest": "^22.1.4",
     "rollup": "^0.55.1"
   },
