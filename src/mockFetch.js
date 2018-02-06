@@ -3,7 +3,7 @@ import {useGlobally} from './utility'
 
 
 const RealPromise = Promise
-const realFetch = typeof fetch === 'undefined' ? () => {} : fetch
+const realFetch = window.fetch
 
 
 /**
