@@ -1,7 +1,7 @@
 /**
  * @namespace 
  * @property {Boolean} autoResolve resolve all MockPromises and fetches in order they were created
- * @property {Boolean} snapEnv include state, getters and paylaod into snapshot
+ * @property {Boolean} snapEnv include state, getters and payload into snapshot
  * @property {Boolean} allowManualActionResolution simaulation can now resolve action'sReturn value
  */
 const options = {
