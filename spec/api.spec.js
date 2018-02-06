@@ -292,8 +292,6 @@ describe('API', () => {
           console.error(err)
           done(err)
         })
-
-      console.log(vuexSnapshot.timetable.entries)
     })
 
     it('Async rejected', done => {

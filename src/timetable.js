@@ -32,7 +32,7 @@ export const trigger = ({name, type, payload}) => {
   
   return new RealPromise((resolve, reject) => {
     if(typeof entry === 'undefined') {
-      reject(new Error(`vuex-snapshot: did not found promise ${name + suffix()}`))
+      reject(new Error(`vuex-snapshot: did not find ${name + suffix()} that wasn't already resolved or rejected`))
     }
   
     entry[type](payload)
