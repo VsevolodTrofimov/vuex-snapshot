@@ -15,23 +15,23 @@ Module to snapshot test vuex actions with jest
 
 ## Why snapshot test actions
 I hope you are familiar with what [jest][jest-main], [vuex][vuex-main] 
-and [snapshot testsing][jest-snapshot-testing] are.
+and [snapshot testing][jest-snapshot-testing] are.
 
-Vuex actions straightforward to read, and writing tests that are 
-more complex and 4 times as long as they are feels really wrong.
+Vuex actions are straightforward to read, and writing tests that are 
+more complex and 10 times longer than the code they cover feels really wrong.
 
-And they fullfill 3 roles:
+And they fulfill 3 roles:
  1. Representation of app logic (conditions & calls of commits\dispatches)
  2. API for components
- 3. Asyncronus layer for store (as mutations must be sync)
+ 3. Asynchronous layer for store (as mutations must be sync)
 
-So we mainly tests them to make sure that when we change \ add execution path other's dont get broken
+So we mainly tests them to make sure that when we change \ add execution path other's don't get broken
 
-Our component API didn't chage
+Our component API didn't change
 
-With added complexity of controlling async behaviours and rest of the store
+With added complexity of controlling async behaviors and rest of the store
 
-vuex-snapshot tries to make this as easy and declarative
+vuex-snapshot tries to make this easy and declarative
 
 ## Getting started
 ### Prerequisites
@@ -233,13 +233,13 @@ Resets `vuexSnapshot.config` to default values
 Replaces `window.Promise` (same as `global.Promise`) with vuexSnapshot.MockPromise that could be named and resolved manually
 
 #### useRealPromise
-Sets `window.Promise` to it's original value
+Sets `window.Promise` to its original value
 
 #### useMockFetch
 Replaces `window.fetch` (same as `global.fetch`) with vuexSnapshot.MockPromise that could be named and resolved manually
 
 #### useRealFetch
-Sets `window.fetch` to it's original value
+Sets `window.fetch` to its original value
 
 ### Config
 These fit very specific types of tests, so using 
