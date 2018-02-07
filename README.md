@@ -13,7 +13,7 @@ Module to snapshot test vuex actions with jest
   - Config
 - :hammer: Tips
 
-## Why snapshot test actions
+## Why use snapshot tests for actions
 I hope you are familiar with what [jest][jest-main], [vuex][vuex-main] 
 and [snapshot testing][jest-snapshot-testing] are.
 
@@ -94,7 +94,8 @@ _NOTE: by default vuex-snapshot would not use commit & dispatch from your store,
 
 
 ## Usage
-### snapAcion overloads
+:hammer: Readme work in progress
+### snapAction overloads
 ```js
 import {snapAction, Snapshot} from 'vuex-snapshot'
 
