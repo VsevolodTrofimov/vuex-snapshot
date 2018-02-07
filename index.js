@@ -1,6 +1,7 @@
 import * as promiseLib from './src/mockPromise'
 import * as fetchLib from './src/mockFetch'
 import timetable from './src/timetable'
+import Snapshot from './src/snapshot'
 import snapActionCore from './src/snapAction'
 import config from './src/config'
 
@@ -25,7 +26,7 @@ const reset = () => {
  * @param {[(string | Resolution)]} resolutions
  * @returns {(Array | Promise<Array>)}
  */
-const snapAction = (action, mocks={}, resolutions=[]) => {
+const snapAction = (action, mocks={}, resolutions=[], snapshot=new Snapshot()) => {
   if(Array.isArray(mocks)) {
     resolutions = mocks
     mocks = {}
@@ -45,6 +46,7 @@ const snapAction = (action, mocks={}, resolutions=[]) => {
     }, 
     resolutions, 
     config.options,
+    snapshot
   )
 }
 
@@ -58,6 +60,8 @@ export default {
 
   config: config.options,
   resetConfig: config.reset,
+
+  Snapshot,
 
   mockFetch: fetchLib.mockFetch,
   useMockFetch: fetchLib.useMock,

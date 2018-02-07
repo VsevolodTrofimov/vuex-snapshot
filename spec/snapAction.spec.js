@@ -1,7 +1,7 @@
 import {snapAction, makeCallSnapper} from '../src/snapAction'
 import { MockPromise } from '../src/mockPromise'
 import timetable from '../src/timetable'
-import snapshot from '../src/snapshot'
+import Snapshot from '../src/snapshot'
 import config from '../src/config'
 
 
@@ -33,9 +33,11 @@ describe('snapAction', () => {
   describe('core', () => {
     const mocks = {}
     const options = {}
-    let action
+    let action, snapshot
 
     beforeEach(() => {
+      snapshot = new Snapshot()
+
       timetable.reset()
 
       mocks.state = {
@@ -59,14 +61,14 @@ describe('snapAction', () => {
     })
     
     it('Stays sync if action did not return a promise', () => {
-      const snap = snapAction(action, mocks, [], {})
+      const snap = snapAction(action, mocks, [], {}, snapshot)
 
       expect(action).toBeCalled()
       expect(snap instanceof Promise).toBe(false)
     })
 
     it('Passes mocks', () => {
-      snapAction(action, mocks, [], {})
+      snapAction(action, mocks, [], {}, snapshot)
 
       const recivedMocks = action.mock.calls[0][0]
       const recivedPayload = action.mock.calls[0][1]
@@ -91,11 +93,13 @@ describe('snapAction', () => {
         return new Promise(() => {})
       }
 
-      const resolveSnapPromise = snapAction(actionResolve, mocks, ['will.resolve'], options)
+      const resolveSnapPromise = snapAction(actionResolve, mocks, [
+        'will.resolve'], options, new Snapshot())
       const rejectSnapPromise = snapAction(actionReject, mocks, [
         {name: 'will.reject', type: 'reject'}
-      ], options)
-      const idleSnapPromise = snapAction(actionIdle, mocks, ['will.resolve'], options)
+      ], options, new Snapshot())
+      const idleSnapPromise = snapAction(actionIdle, mocks, [
+        'will.resolve'], options, new Snapshot())
 
       resolveSnapPromise.then(run => {
         expect(run[run.length - 1].message).toBe('ACTION RESOLVED')
@@ -126,7 +130,7 @@ describe('snapAction', () => {
         Promise.all(promises).then(resolve)
       })
 
-      snapAction(action, mocks, ['Promise'], options)
+      snapAction(action, mocks, ['Promise'], options, snapshot)
         .then(run => {
           expect(run[run.length - 1].message).toBe('ACTION RESOLVED')
           done()
@@ -136,7 +140,7 @@ describe('snapAction', () => {
     
     it('Snaps info about ENV when snapEnv is ture', () => {
       options.snapEnv = true
-      const run = snapAction(action, mocks, [], options)
+      const run = snapAction(action, mocks, [], options, snapshot)
 
       expect(run[0].message).toBe('DATA MOCKS')
       expect(run[0].payload.state).toBe(mocks.state)
@@ -150,7 +154,7 @@ describe('snapAction', () => {
       options.allowManualActionResolution = true
       const action = () => new MockPromise('ActionPromise')
 
-      snapAction(action, mocks, ['ActionPromise'], options)
+      snapAction(action, mocks, ['ActionPromise'], options, snapshot)
         .then(run => {
           expect(run[run.length - 1].message).toBe('ACTION RESOLVED')
           done()
@@ -167,7 +171,7 @@ describe('snapAction', () => {
       const normalizeErrorPromise = new MockPromise(() => {})
       const timetableErrorPromise = new MockPromise(() => {})
 
-      snapAction(action, mocks, [{type: 'strange thing'}], options)
+      snapAction(action, mocks, [{type: 'strange thing'}], options, new Snapshot())
         .then(normalizeErrorPromise.reject)
         .catch(rejection => {
           expect(rejection.err instanceof Error).toBe(true)
@@ -175,7 +179,7 @@ describe('snapAction', () => {
           normalizeErrorPromise.resolve()
         })
 
-      snapAction(action, mocks, ['Definitely not there'], options)
+      snapAction(action, mocks, ['Definitely not there'], options, new Snapshot())
         .then(timetableErrorPromise.reject)
         .catch(rejection => {
           expect(rejection.err instanceof Error).toBe(true)

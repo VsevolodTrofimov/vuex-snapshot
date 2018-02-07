@@ -120,7 +120,8 @@ describe('API', () => {
       expect(snapAction).toBeCalledWith(
         action, expect.any(Object), 
         expect.any(Array), 
-        config.options
+        config.options,
+        expect.any(vuexSnapshot.Snapshot)
       )
     })
 
@@ -133,7 +134,8 @@ describe('API', () => {
       expect(snapAction).toBeCalledWith(
         action, expect.any(Object), 
         expect.any(Array), 
-        config.options
+        config.options,
+        expect.any(vuexSnapshot.Snapshot)
       )
     })
 
@@ -143,7 +145,8 @@ describe('API', () => {
       expect(snapAction).toBeCalledWith(
         action, expect.any(Object), 
         resolutions, 
-        config.options
+        config.options,
+        expect.any(vuexSnapshot.Snapshot)
       )
     })
 
@@ -156,7 +159,23 @@ describe('API', () => {
       expect(snapAction).toBeCalledWith(
         action, expect.any(Object), 
         resolutions, 
-        config.options
+        config.options,
+        expect.any(vuexSnapshot.Snapshot)
+      )
+    })
+
+    it('Works with [action, mocks, resolutions, snapshot] args', () => {
+      const snapshot = new vuexSnapshot.Snapshot()
+      vuexSnapshot.snapAction(action, mocks, resolutions, snapshot)
+
+      const recivedMocks = snapAction.mock.calls[0][1]
+
+      expectMocksPassed(recivedMocks, mocks)
+      expect(snapAction).toBeCalledWith(
+        action, expect.any(Object), 
+        resolutions, 
+        config.options,
+        snapshot
       )
     })
   })

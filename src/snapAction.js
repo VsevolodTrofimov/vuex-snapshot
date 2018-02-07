@@ -1,4 +1,3 @@
-import Snapshot from './snapshot'
 import {simualteResolutions} from './resolutionUtils'
 import timetable from '../src/timetable'
 
@@ -23,8 +22,7 @@ export const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
  * @param {{autoResovle: Boolean, snapEnv: Boolean}} options
  * @returns  {(string | Promise<string>)}
  */
-export const snapAction = (action, mocks, resolutions, options) => {
-  const snapshot = new Snapshot()
+export const snapAction = (action, mocks, resolutions, options, snapshot) => {
   const mockCommit = makeCallSnapper(snapshot, 'COMMIT', mocks.commit)
   const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH', mocks.dispatch)
 

@@ -306,8 +306,7 @@ const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
  * @param {{autoResovle: Boolean, snapEnv: Boolean}} options
  * @returns  {(string | Promise<string>)}
  */
-const snapAction = (action, mocks, resolutions, options) => {
-  const snapshot = new Snapshot();
+const snapAction = (action, mocks, resolutions, options, snapshot) => {
   const mockCommit = makeCallSnapper(snapshot, 'COMMIT', mocks.commit);
   const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH', mocks.dispatch);
 
@@ -409,7 +408,7 @@ const reset$2 = () => {
  * @param {[(string | Resolution)]} resolutions
  * @returns {(Array | Promise<Array>)}
  */
-const snapAction$1 = (action, mocks={}, resolutions=[]) => {
+const snapAction$1 = (action, mocks={}, resolutions=[], snapshot=new Snapshot()) => {
   if(Array.isArray(mocks)) {
     resolutions = mocks;
     mocks = {};
@@ -429,6 +428,7 @@ const snapAction$1 = (action, mocks={}, resolutions=[]) => {
     }, 
     resolutions, 
     config.options,
+    snapshot
   )
 };
 
@@ -442,6 +442,8 @@ var index = {
 
   config: config.options,
   resetConfig: config.reset,
+
+  Snapshot,
 
   mockFetch: mockFetch,
   useMockFetch: useMock$1,
