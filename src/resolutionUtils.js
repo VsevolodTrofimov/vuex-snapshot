@@ -29,7 +29,7 @@ export const normalizeResolution = resolution => {
       normalResolution.type = resolution.type
     } else {
       throw new Error('vuex-snapshot: INPUT ERROR resolution type must be' 
-                      + 'either "resovle" or "reject"')
+                      + 'either "resolve" or "reject"')
     }
   }
 

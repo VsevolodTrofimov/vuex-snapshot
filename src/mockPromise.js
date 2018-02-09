@@ -13,7 +13,7 @@ export class MockPromise extends RealPromise {
    * @param {string} name
    */
   constructor(cb, name='Promise') {
-    let resovleTrigger
+    let resolveTrigger
     let rejectTrigger
 
     // name-only construction
@@ -23,7 +23,7 @@ export class MockPromise extends RealPromise {
     }
 
     const cbProxy = (resolve, reject) => {
-      resovleTrigger = resolve
+      resolveTrigger = resolve
       rejectTrigger = reject
       cb(resolve, reject)
     }
@@ -31,14 +31,14 @@ export class MockPromise extends RealPromise {
     super(cbProxy)
 
     this.name = name
-    this.resolve = resovleTrigger
+    this.resolve = resolveTrigger
     this.reject = rejectTrigger
 
     timetable.register({
       name,
       promise: this,
       payload: cb,
-      resolve: resovleTrigger,
+      resolve: resolveTrigger,
       reject: rejectTrigger
     })
   }

@@ -14,24 +14,24 @@ const realFetch = window.fetch
  * @returns {Promise}
  */
 export const mockFetch = (url, init) => {
-  let resovleTrigger
+  let resolveTrigger
   let rejectTrigger
 
   const cbProxy = (resolve, reject) => {
-    resovleTrigger = resolve
+    resolveTrigger = resolve
     rejectTrigger = reject
   }
 
   const simulation = new RealPromise(cbProxy)
   simulation.name = url
-  simulation.resolve = resovleTrigger
+  simulation.resolve = resolveTrigger
   simulation.reject = rejectTrigger
 
   timetable.register({
     name: url,
     promise: simulation,
     payload: init,
-    resolve: resovleTrigger,
+    resolve: resolveTrigger,
     reject: rejectTrigger
   })
 

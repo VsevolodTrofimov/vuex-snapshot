@@ -88,7 +88,7 @@ class MockPromise extends RealPromise$1 {
    * @param {string} name
    */
   constructor(cb, name='Promise') {
-    let resovleTrigger;
+    let resolveTrigger;
     let rejectTrigger;
 
     // name-only construction
@@ -98,7 +98,7 @@ class MockPromise extends RealPromise$1 {
     }
 
     const cbProxy = (resolve, reject) => {
-      resovleTrigger = resolve;
+      resolveTrigger = resolve;
       rejectTrigger = reject;
       cb(resolve, reject);
     };
@@ -106,14 +106,14 @@ class MockPromise extends RealPromise$1 {
     super(cbProxy);
 
     this.name = name;
-    this.resolve = resovleTrigger;
+    this.resolve = resolveTrigger;
     this.reject = rejectTrigger;
 
     timetable.register({
       name,
       promise: this,
       payload: cb,
-      resolve: resovleTrigger,
+      resolve: resolveTrigger,
       reject: rejectTrigger
     });
   }
@@ -135,24 +135,24 @@ const realFetch = window.fetch;
  * @returns {Promise}
  */
 const mockFetch = (url, init) => {
-  let resovleTrigger;
+  let resolveTrigger;
   let rejectTrigger;
 
   const cbProxy = (resolve, reject) => {
-    resovleTrigger = resolve;
+    resolveTrigger = resolve;
     rejectTrigger = reject;
   };
 
   const simulation = new RealPromise$2(cbProxy);
   simulation.name = url;
-  simulation.resolve = resovleTrigger;
+  simulation.resolve = resolveTrigger;
   simulation.reject = rejectTrigger;
 
   timetable.register({
     name: url,
     promise: simulation,
     payload: init,
-    resolve: resovleTrigger,
+    resolve: resolveTrigger,
     reject: rejectTrigger
   });
 
@@ -217,7 +217,7 @@ const normalizeResolution = resolution => {
       normalResolution.type = resolution.type;
     } else {
       throw new Error('vuex-snapshot: INPUT ERROR resolution type must be' 
-                      + 'either "resovle" or "reject"')
+                      + 'either "resolve" or "reject"')
     }
   }
 
@@ -287,9 +287,13 @@ const simualteResolutions = (resolutions, snapshot, timetable, options) => {
 const RealPromise$4 = Promise;
 
 
-const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
-  snapshot.add(`${type}: ${name}`, payload);
-  cb(name, payload);
+const makeCallSnapper = (snapshot, type, cb) => {
+  const snapper = (name, payload) => {
+    snapshot.add(`${type}: ${name}`, payload);
+    return cb(name, payload, snapper.proxies)
+  };
+
+  return snapper
 };
 
 
@@ -301,12 +305,20 @@ const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
  * @param {Function} action action to test
  * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
  * @param {[(string | Resolution)]} resolutions
- * @param {{autoResovle: Boolean, snapEnv: Boolean}} options
+ * @param {{autoResolve: Boolean, snapEnv: Boolean, allowManualActionResolution: Boolean}} options
  * @returns  {(string | Promise<string>)}
  */
 const snapAction = (action, mocks, resolutions, options, snapshot) => {
   const mockCommit = makeCallSnapper(snapshot, 'COMMIT', mocks.commit);
   const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH', mocks.dispatch);
+  
+  const proxies = {
+    commit: mockCommit,
+    dispatch: mockDispatch
+  };
+
+  mockCommit.proxies = proxies;
+  mockDispatch.proxies = proxies;
 
   if(options.snapEnv) {
     snapshot.add('DATA MOCKS', {
