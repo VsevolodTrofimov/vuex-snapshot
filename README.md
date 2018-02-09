@@ -293,7 +293,7 @@ If action returned a promise `snapAction` would do the same.
 That promise will resolve with an `Array` of `Object`s that represents action's execution. 
 It could be compared to snapshot, or tested manually.
 
-If vuex-snapshot experienced internal error snapAction test it would reject with an `Object`
+If vuex-snapshot experienced internal error snapAction would reject with an `Object`
 of following structure:
 ```js
 {
@@ -338,7 +338,7 @@ Resets `vuexSnapshot.config` to default values.
 Replaces `window.Promise` (same as `global.Promise`) with vuexSnapshot.MockPromise 
 that could be named and resolved manually.
 
-#### u`seRealPromise`
+#### `useRealPromise`
 Sets `window.Promise` to its original value.
 
 #### `useMockFetch`
