@@ -3,47 +3,44 @@
 Module to snapshot test vuex actions with jest
 
 ## Table of contents
-* [Why use snapshot tests for actions](#why-use-snapshot-tests-for-actions)
+* [Why use snapshot tests for actions?](#why-use-snapshot-tests-for-actions-)
 * [Getting started](#getting-started)
   + [Prerequisites](#prerequisites)
   + [Installation](#installation)
   + [Basic example](#basic-example)
 * [Usage](#usage)
+  + [mocks](#mocks)
+  + [MockPromises](#mockpromises)
   + [snapAction overloads](#snapaction-overloads)
   + [Testing async actions](#testing-async-actions)
-  + [Testing async actions [2]](#testing-async-actions--2-)
-  + [Using mocks](#using-mocks)
-  + [Using mockPromises](#using-mockpromises)
   + [Utilities](#utilities)
   + [Config](#config)
 * [Tips](#tips)
   + [Mocking timers for vuex-snapshot resolutions](#mocking-timers-for-vuex-snapshot-resolutions)
   + [Deep testing (execute called actions)](#deep-testing--execute-called-actions-)
 
-## Why use snapshot tests for actions
+## Why use snapshot tests for actions?
 I hope you are familiar with what [jest][jest-main], [vuex][vuex-main] 
 and [snapshot testing][jest-snapshot-testing] are.
 
 Vuex actions are straightforward to read, and writing tests that are 
 more complex and 10 times longer than the code they cover feels really wrong.
 
-And they fulfill 3 roles:
+Actions fulfill 3 roles:
  1. Representation of app logic (conditions & calls of commits\dispatches)
  2. API for components
  3. Asynchronous layer for store (as mutations must be sync)
 
-So we mainly test them to make sure that when we change \ add execution path other's don't get broken
+As such we unit test them to make sure that: 
+ 1. When we change \ add execution path others don't get broken
+ 2. Our component API didn't change
 
-Our component API didn't change
-
-With added complexity of controlling async behaviors and rest of the store
-
-vuex-snapshot tries to make this easy and declarative
+**vuex-snapshot** makes this easy and declarative, even for async actions.
 
 ## Getting started
 ### Prerequisites
  - :heavy_check_mark: Node 6 stable or later
- - :heavy_check_mark: have `jest` and, `babel-jest` installed 
+ - :heavy_check_mark: `jest` and, `babel-jest` installed 
    (es6-modules imports would be used in examples, but `vuex-snapshot` is also output as CommonJS)
 
 ### Installation
@@ -54,7 +51,7 @@ npm install --save-dev vuex-snapshot
 
 #### via yarn
 ```bash
-yarn add -D vuex-snapshot
+yarn add --dev vuex-snapshot
 ```
 
 
@@ -77,11 +74,10 @@ test('restartGame matches snapshot', () => {
   expect(snapAction(restartGame)).toMatchSnapshot()
 })
 
-/* 
- after running jest
- __snapshots__/actions.spec.js
- should look like
- */
+/*
+__snapshots__/actions.spec.js
+after running jest
+*/
 
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
@@ -97,10 +93,74 @@ Array [
 ]
 `;
 ```
-> NOTE: by default vuex-snapshot would not use commit & dispatch from your store, but you can pass them via mocks
+> **NOTE:** by default vuex-snapshot would not use commit & dispatch from your store, but you can pass them via mocks
 
 
 ## Usage
+### mocks
+By using mocks object you can pass state, getters, payload(action's second argument) of any type,
+as well as custom `commit` and `dispatch` functions.
+
+> **NOTE:** Make sure your getters are what they return, not how they calculate it
+
+#### Example
+```js
+const action = jest.fn()
+
+const mocks = {
+  payload: 0,
+  state: {
+    stateValue: 'smth'
+  },
+  getters: {
+    answer: 42
+  },
+  commit: console.log
+  dispatch: jest.fn()
+}
+
+snapAction(action, mocks)
+
+// would call the action like
+action({
+  state: mocks.state,
+  getters: mocks.getters,
+  commit: (name, payload) => mocks.commit(name, payload, proxies),
+  dispatch: (name, payload) => mocks.dispatch(name, payload, proxies),
+}, mocks.payload)
+```
+Proxies is an object with commit and dispatch that were actually passed to action (not those from mocks)
+
+> **Note:** state and getters are being reassigned. 
+> Like they would pass `.toEqual` test, but not a `.toBe` one.
+
+### MockPromises
+```js
+import {MockPromise} from 'vuex-snapshot'
+
+const name = 'some string'
+const cb = (resolve, reject) => {}
+new MockPromise(cb, name)
+new MockPromise(cb) // name will be 'Promise'
+new MockPromise(name) //cb will be  () => {}
+
+// some manual control
+const toResolve = new MockPromise('some name')
+const toReject = new MockPromise('some other name')
+const payload = {type: 'any'}
+
+toResolve.resolve(payload)
+toReject.reject(payload)
+
+console.log(toReject.name) // some other name
+```
+This class extends Promise, so Promise.all and other promise methods work perfectly for it
+
+> **NOTE:** `new MockPromise.then(cb)` actually creates new `MockPromise` (that is default Promise behavior).
+> As such there is a risk of `resolutions = ['Promise', 'Promise']`
+> matching this one instead of the Promise you've meant.
+> This is just as true for `catch`, `finally`, `Promise.all` and `Promise.race`
+
 ### snapAction overloads
 ```js
 import {snapAction, Snapshot} from 'vuex-snapshot'
@@ -114,13 +174,11 @@ snapAction(action, mocks, resolutions, snapshotToWriteTo)
 ```
 
 If action returned a promise `snapAction` would do the same.
-
 That promise will resolve with an `Array` of `Object`s that represents action's execution. 
-
 It could be compared to snapshot, or tested manually.
 
 If vuex-snapshot experienced internal error snapAction test it would reject with an `Object`
-Of following structure
+of following structure:
 ```js
 {
   err, // Actual error that has been thrown
@@ -241,72 +299,8 @@ test('login matches network fail snapshot', done => {
     })
 })
 ```
-> NOTE: promises with same names would be matched to resolutions in order they were created
+> **NOTE:** promises with same names would be matched to resolutions in order they were created
 
-
-### Using mocks
-You can pass state, getters, payload of any type
-
-As well as custom `commit` and `dispatch` functions
-
-> NOTE: Make sure your getters are what they return, not how they calculate it
-
-#### Example
-```js
-const action = jest.fn()
-
-const mocks = {
-  payload: 0,
-  state: {
-    stateValue: 'smth'
-  },
-  getters: {
-    answer: 42
-  },
-  commit: console.log
-  dispatch: jest.fn()
-}
-
-snapAction(action, mocks)
-
-// would call the action like
-action({
-  state: mocks.state,
-  getters: mocks.getters,
-  commit: (name, payload) => mocks.commit(name, payload, proxies),
-  dispatch: (name, payload) => mocks.dispatch(name, payload, proxies),
-}, mocks.payload)
-```
-Proxies is an object with commit and dispatch that were actually passed to action (not those from mocks)
-
-> Note: state, getters ... are being reassigned, not copied. 
-> Like they would pass `.toEqual` test, but no a `.toBe` one
-
-### Using mockPromises
-```js
-import {MockPromise} from 'vuex-snapshot'
-
-const name = 'some string'
-const cb = (resolve, reject) => {}
-new MockPromise(cb, name)
-new MockPromise(cb) // name will be 'Promise'
-new MockPromise(name) //cb will be  () => {}
-
-// some manual control
-const toResolve = new MockPromise('some name')
-const toReject = new MockPromise('some other name')
-const payload = {type: 'any'}
-
-toResolve.resovle(payload)
-toReject.resovle(payload)
-
-console.log(toReject.name) // some other name
-```
-This class extends Promise, so Promise.all and other promise methods work perfectly for it
-
-> NOTE: `new MockPromise.then(cb)` actually creates new `MockPromise` (that is default Promise behavior).
-> So there is a risk of resolutions['Promise'] matching this one instead of the Promise you've meant
-> This is just as true for any other method
 
 ### Utilities
 ```js
@@ -326,31 +320,33 @@ import {
 } from 'vuex-snapshot'
 ```
 
-#### reset
-Reset calls all other resets and useReal
+#### `reset`
+Reset calls all other resets and useReal.
 
-#### resetTimetable
-Makes sure no already created promises could be matched to resolutions
+#### `resetTimetable`
+Makes sure no already created promises could be matched to resolutions.
 
-#### resetConfig
-Resets `vuexSnapshot.config` to default values
+#### `resetConfig`
+Resets `vuexSnapshot.config` to default values.
 
-#### useMockPromise
-Replaces `window.Promise` (same as `global.Promise`) with vuexSnapshot.MockPromise that could be named and resolved manually
+#### `useMockPromise`
+Replaces `window.Promise` (same as `global.Promise`) with vuexSnapshot.MockPromise 
+that could be named and resolved manually.
 
-#### useRealPromise
-Sets `window.Promise` to its original value
+#### u`seRealPromise`
+Sets `window.Promise` to its original value.
 
-#### useMockFetch
-Replaces `window.fetch` (same as `global.fetch`) with vuexSnapshot.MockPromise that could be named and resolved manually
+#### `useMockFetch`
+Replaces `window.fetch` (same as `global.fetch`) with vuexSnapshot.MockPromise 
+that could be named and resolved manually.
 
-#### useRealFetch
-Sets `window.fetch` to its original value
+#### `useRealFetch`
+Sets `window.fetch` to its original value.
 
 
 ### Config
 These fit very specific types of tests, so using 
-`beforeEach(vuexSnapshot.reset)` is highly encouraged
+`beforeEach(vuexSnapshot.reset)` is highly encouraged.
 
 #### `vuexSnapshot.config.autoResolve`
 ##### Default
@@ -359,14 +355,14 @@ false
 ##### Description
 Instead of acting according to passed resolutions vuex-snapshot will
 automatically trigger resolve on each mock promise in 
-order they were created
+order they were created.
 
 
 #### `vuexSnapshot.config.snapEnv`
 ##### Default
 false
 ##### Description
-Starts snapshot with 2 entries
+Starts snapshot with 2 entries:
 ``` js
 {
   message: 'DATA MOCKS'
@@ -389,7 +385,7 @@ Starts snapshot with 2 entries
 ##### Default
 false
 ##### Description
-Allows vuexSnapshot to resolve promise returned by action 
+Allows vuexSnapshot to resolve promise returned by action.
 
 
 ## Tips
@@ -425,7 +421,7 @@ test('action snapshot usnig timers', done => {
 })
 ```
 
-> NOTE: This is not fully accurate simulation because resolving it manually or via resolutions
+> **NOTE:** This is not fully accurate simulation because resolving it manually or via resolutions
 > would cause a bit higher priority in [event-loop], and resolution on timeout would be 1 tick late
 > Because Promise.then() is not synchronous
 
