@@ -9,10 +9,10 @@ Module to snapshot test vuex actions with jest
   + [Installation](#installation)
   + [Basic example](#basic-example)
 * [Usage](#usage)
+  + [Testing async actions](#testing-async-actions)
   + [mocks](#mocks)
   + [MockPromises](#mockpromises)
   + [snapAction overloads](#snapaction-overloads)
-  + [Testing async actions](#testing-async-actions)
   + [Utilities](#utilities)
   + [Config](#config)
 * [Tips](#tips)
@@ -97,6 +97,122 @@ Array [
 
 
 ## Usage
+### Testing async actions
+```js
+// @/store/actions.js
+export const openDashboard = ({commit, dispatch}) => new Promise((resolve, reject) => {
+  commit('setRoute', 'loading')
+  dispatch('load', 'dashboard')
+    .then(() => {
+      commit('setRoute', 'dashboard')
+      resolve()
+    })
+    .catch('reject')
+})
+
+// actions.spec.js
+import {snapAction, MockPromise} from 'vuex-snapshot'
+import {openDashboard} from '@/store/actions'
+
+test('openDashboard matches success snapshot', done => {
+  // MockPromise can be resolved manually unlike default Promise
+  const dispatch = name => new MockPromise(name)
+
+  // order in which promises would be resolved
+  const resolutions = ['load']
+
+  snapAction(openDashboard, {dispatch}, resolutions)
+    .then(run => {
+      expect(run).toMatchSnapshot()
+      done()
+    })
+})
+```
+
+### Testing async actions [2]
+```js
+// @/store/actions.js
+export const login = ({commit, dispatch, getters}, creditals) => {
+  return new Promise((resolve, reject) => {
+    if(!getters.user.loggedIn) {
+      fetch('/api/login/', {
+        method: 'POST',
+        body: JSON.stringify(creditals)
+      })
+        .then(res => res.json())
+        .then(data => {
+          commit('setUser', data)
+          dispatch('setRoute', 'profile')
+          resolve()
+        })
+        .catch(reject)
+    } else {
+      resolve()
+    }
+  })
+}
+
+
+// actions.spec.js
+import {snapAction, useMockFetch, MockPromise} from 'vuex-snapshot'
+import {login} from '@/store/actions'
+
+test('login matches success snapshot', done => {
+  useMockFetch()
+  
+  const payload = { authCode: 1050 }
+  const getters = {
+    user: {
+      loggedIn: false
+    }
+  }
+
+  // this is equivalent to calling resolve(payload) inside promise cb
+  const resolutions = [{
+    name: '/api/login/',
+    payload: { json: () => new MockPromise('json') }
+  }, {
+    name: 'json',
+    payload: { name: 'someUser', id: 21 }
+  }]
+
+  snapAction(login, {getters, payload}, resolutions)
+    .then(run => {
+      expect(run).toMatchSnapshot()
+      done()
+    })
+})
+
+
+// testing error scenarios is just as easy
+test('login matches network fail snapshot', done => {
+  useMockFetch()
+  
+  const payload = { authCode: 1050 }
+  const getters = {
+    user: {
+      loggedIn: false
+    }
+  }
+
+  const resolutions = [{
+    name: '/api/login/',
+    type: 'reject', // resolve is default value
+    payload: new TypeError('Failed to fetch')
+  }]
+
+  snapAction(login, {getters, payload}, resolutions)
+    .then(run => {
+      /* vuex-snapshot would write that action rejected in the snapshot
+         so you can test rejections as well */
+      expect(run).toMatchSnapshot()
+      done()
+    })
+})
+```
+> **NOTE:** promises with same names would be matched to resolutions in order they were created
+
+
 ### mocks
 By using mocks object you can pass state, getters, payload(action's second argument) of any type,
 as well as custom `commit` and `dispatch` functions.
@@ -189,117 +305,6 @@ of following structure:
 
 If action returned anything that is not a promise (including `undefined`) `snapAction` would
 synchronously return an array mentioned above.
-
-
-### Testing async actions
-```js
-// @/store/actions.js
-export const openDashboard = ({commit, dispatch}) => new Promise((resolve, reject) => {
-  commit('setRoute', 'loading')
-  dispatch('load', 'dashboard')
-    .then(() => {
-      commit('setRoute', 'dashboard')
-      resolve()
-    })
-    .catch('reject')
-})
-
-// actions.spec.js
-import {snapAction, MockPromise} from 'vuex-snapshot'
-import {openDashboard} from '@/store/actions'
-
-test('openDashboard matches success snapshot', done => {
-  const dispatch = name => new MockPromise(name)
-  const resolutions = ['load']
-
-  snapAction(openDashboard, {dispatch}, resolutions)
-    .then(run => {
-      expect(run).toMatchSnapshot()
-      done()
-    })
-})
-```
-
-
-### Testing async actions [2]
-```js
-// @/store/actions.js
-export const login = ({commit, dispatch, getters}, creditals) => {
-  return new Promise((resolve, reject) => {
-    if(!getters.user.loggedIn) {
-      fetch('/api/login/', {
-        method: 'POST',
-        body: JSON.stringify(creditals)
-      })
-        .then(res => res.json())
-        .then(data => {
-          commit('setUser', data)
-          dispatch('setRoute', 'profile')
-          resolve()
-        })
-        .catch(reject)
-    } else {
-      resolve()
-    }
-  })
-}
-
-
-// actions.spec.js
-import {snapAction, useMockFetch, MockPromise} from 'vuex-snapshot'
-import {login} from '@/store/actions'
-
-test('login matches success snapshot', done => {
-  useMockFetch()
-  
-  const payload = { authCode: 1050 }
-  const getters = {
-    user: {
-      loggedIn: false
-    }
-  }
-
-  const resolutions = [{
-    name: '/api/login/',
-    payload: { json: () => new MockPromise('json') }
-  }, {
-    name: 'json',
-    payload: { name: 'someUser', id: 21 }
-  }]
-
-  snapAction(login, {getters, payload}, resolutions)
-    .then(run => {
-      expect(run).toMatchSnapshot()
-      done()
-    })
-})
-
-test('login matches network fail snapshot', done => {
-  useMockFetch()
-  
-  const payload = { authCode: 1050 }
-  const getters = {
-    user: {
-      loggedIn: false
-    }
-  }
-
-  const resolutions = [{
-    name: '/api/login/',
-    type: 'reject',
-    payload: new TypeError('Failed to fetch')
-  }]
-
-  snapAction(login, {getters, payload}, resolutions)
-    .then(run => {
-      /* vuex-snapshot would write that action rejected in the snapshot
-         so you can test rejections as well */
-      expect(run).toMatchSnapshot()
-      done()
-    })
-})
-```
-> **NOTE:** promises with same names would be matched to resolutions in order they were created
 
 
 ### Utilities
