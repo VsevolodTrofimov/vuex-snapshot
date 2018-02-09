@@ -5,9 +5,13 @@ import timetable from '../src/timetable'
 const RealPromise = Promise
 
 
-export const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
-  snapshot.add(`${type}: ${name}`, payload)
-  cb(name, payload)
+export const makeCallSnapper = (snapshot, type, cb) => {
+  const snapper = (name, payload) => {
+    snapshot.add(`${type}: ${name}`, payload)
+    return cb(name, payload, snapper.proxies)
+  }
+
+  return snapper
 }
 
 
@@ -19,12 +23,20 @@ export const makeCallSnapper = (snapshot, type, cb) => (name, payload) => {
  * @param {Function} action action to test
  * @param {{state, getters, commit: Function, dispatch: Function, payload}} mocks arguments passed to the action, payload is the second argument
  * @param {[(string | Resolution)]} resolutions
- * @param {{autoResovle: Boolean, snapEnv: Boolean}} options
+ * @param {{autoResolve: Boolean, snapEnv: Boolean, allowManualActionResolution: Boolean}} options
  * @returns  {(string | Promise<string>)}
  */
 export const snapAction = (action, mocks, resolutions, options, snapshot) => {
   const mockCommit = makeCallSnapper(snapshot, 'COMMIT', mocks.commit)
   const mockDispatch = makeCallSnapper(snapshot, 'DISPATCH', mocks.dispatch)
+  
+  const proxies = {
+    commit: mockCommit,
+    dispatch: mockDispatch
+  }
+
+  mockCommit.proxies = proxies
+  mockDispatch.proxies = proxies
 
   if(options.snapEnv) {
     snapshot.add('DATA MOCKS', {

@@ -20,12 +20,27 @@ describe('snapAction', () => {
     it('Calls passed callback with name and payload', () => {
       const name = 'name'
       callSnapper(name, payload)
-      expect(cb).toBeCalledWith(name, payload)
+      expect(cb).toBeCalledWith(name, payload, undefined)
     })
 
     it('Produces message that matches snapshot', () => {
       callSnapper('name', payload)
       expect(snapshot.add.mock.calls[0]).toMatchSnapshot()
+    })
+
+    it('Returns callback execution', () => {
+      const expectedReturn = {}
+
+      cb.mockReturnValue(expectedReturn)
+      expect(callSnapper('name', payload)).toBe(expectedReturn)  
+    })
+
+    it('Passes proxies as a 3rd argument', () => {
+      const proxies = {}
+      callSnapper.proxies = proxies
+      callSnapper('name', payload)
+
+      expect(cb).toBeCalledWith('name', payload, proxies) 
     })
   })
 
@@ -77,8 +92,8 @@ describe('snapAction', () => {
       expect(recivedMocks.getters).toBe(mocks.getters)
       expect(recivedPayload).toBe(mocks.payload)
 
-      expect(mocks.commit).toBeCalledWith('a', mocks.payload)
-      expect(mocks.dispatch).toBeCalledWith('a', mocks.payload)
+      expect(mocks.commit).toBeCalledWith('a', mocks.payload, expect.anything())
+      expect(mocks.dispatch).toBeCalledWith('a', mocks.payload, expect.anything())
     })
 
     it('Always ends with action resolution message for async actions', done => {
@@ -150,7 +165,7 @@ describe('snapAction', () => {
       expect(run[1].payload).toBe(mocks.payload)
     })
 
-    it('Resovles promise returned by action when manual resolution is se to true', done => {
+    it('Resolves promise returned by action when manual resolution is se to true', done => {
       options.allowManualActionResolution = true
       const action = () => new MockPromise('ActionPromise')
 
